@@ -1,1 +1,3 @@
+<<<<<<< HEAD
 Change from branch2
+=======
