@@ -1,0 +1,4 @@
+Description: 'Replace these words with a description of normalization'
+EventDescriptions:
+    - LocalizationId: 'PT_syslog_divination_1'
+      EventDescription: 'Service forecastd: guessing with “{datafield3}” over “{subject.name}”.'

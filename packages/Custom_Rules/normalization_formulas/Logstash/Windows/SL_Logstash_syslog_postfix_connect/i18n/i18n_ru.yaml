@@ -1,0 +1,4 @@
+Description: 'Замени эти слова на описание нормализации'
+EventDescriptions:
+    - LocalizationId: 'SL_Logstash_syslog_postfix_connect_1'
+      EventDescription: 'Подключение на почтовый сервер {event_src.hostname} ({event_src.ip}) с ip адресса {dst.ip}'

@@ -1,0 +1,23 @@
+query plants ($check_object) from plants {
+    column::object == $check_object
+    }
+query animals ($check_object) from animals {
+    column::object == $check_object
+    }
+event PT_syslog_divination:
+    filter {
+        id == "PT_syslog_divination"
+    }
+enrichment Animals_Plants
+    enrich PT_syslog_divination:
+        enrich_fields {
+        $plants = select_query_first("plants", [subject.name], "object")
+		$animals = select_query_first("animals", [subject.name], "object")
+		if $plants != null then
+                subject.group = "Растения"
+            elif $animals != null then
+                subject.group = "Животные"
+            else
+                subject.group = "i don't know"
+            endif
+        }

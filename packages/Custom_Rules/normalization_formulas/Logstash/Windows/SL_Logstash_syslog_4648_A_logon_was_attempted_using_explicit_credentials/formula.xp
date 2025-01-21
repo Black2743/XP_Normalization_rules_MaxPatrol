@@ -1,0 +1,129 @@
+#<13>Nov 27 07:49:08 {"name":"msk-dc-02"} LOGSTASH[-]: 2024-11-27T07:49:08.100Z {name=msk-dc-02} 
+# A logon was attempted using explicit credentials.
+
+# \n\nSubject:\n	Security ID:		S-1-5-20\n	Account Name:		MSK-DC-02$\n	Account Domain:		RENLIFE\n	Logon ID:		0x3E4\n	Logon GUID:		{00000000-0000-0000-0000-000000000000}
+
+# \n\nAccount Whose Credentials Were Used:\n	Account Name:		ivan.podkovyrov\n	Account Domain:		\n	Logon GUID:		{00000000-0000-0000-0000-000000000000}
+
+# \n\nTarget Server:\n	Target Server Name:	msk-dc-02.mos.renlife.com\n	Additional Information:	msk-dc-02.mos.renlife.com
+
+# \n\nProcess Information:\n	Process ID:		0x3874f0\n	Process Name:		C:\Program Files\MFRA.1.0.179\MultiFactor.Radius.Adapter.exe
+
+# \n\nNetwork Information:\n	Network Address:	-\n	Port:			-
+
+# \n\nThis event is generated when a process attempts to log on an account by explicitly specifying that account’s credentials.  This most commonly occurs in batch-type configurations such as scheduled tasks, or when using the RUNAS command.
+
+TEXT = '<{NUMBER}> {DATETIME} {$1=UNTIL("LOGSTASH[-]:")} {$TimeCreated=DATETIME} {$2=STRING*} A logon was attempted using explicit credentials.
+{$uncut_info=STRING*}'
+alert.context="A logon was attempted using explicit credentials."
+subject = "account"
+action = "login"
+object = "system"
+status = "failure"
+
+submessage("JSON","Info", $1)
+subformula 'Info'
+    JSON=''
+    $ComputerName=$name
+    if find_substr($ComputerName, '.') != null then
+        event_src.fqdn = lower($ComputerName)
+        event_src.hostname = lower(substr($ComputerName, 0, find_substr($ComputerName, '.')))
+    else
+        event_src.hostname = lower($ComputerName)
+    endif
+    event_src.id=$id
+endsubformula
+$Data=keyvalue(strip(replace(replace($uncut_info,'&@',"\\\\",10000),'|',"&@n",10000),'||',''),'||',':','')
+
+$DataSubject= keyvalue(strip($Data["Subject"],'| ',''),'|',':','')
+$DataAccountWhoseCredentialsWereUsed= keyvalue(strip($Data["Account Whose Credentials Were Used"],  '| ',''),'|',':','')
+$DataTargetServer= keyvalue(strip($Data["Target Server"],'| ',''),'|',':','')
+$DataCertificateInformation=keyvalue(strip($Data["Certificate Information"],'| ',''),'|',':','')
+$DataProcessInformation=keyvalue(strip($Data["Process Information"],'| ',''),'|',':','')
+$DataNetworkInformation=keyvalue(strip($Data["Network Information"],'| ',''),'|',':','')
+
+subject = "account"
+
+if maybe_number16($DataSubject["Logon ID"]) <= 1000 then
+    action = "login"
+    object = "system"
+
+    subject.account.name = lower($DataAccountWhoseCredentialsWereUsed["Account Name"])
+    subject.account.domain = lower($DataAccountWhoseCredentialsWereUsed["Account Domain"])
+
+    category.generic = "Operating System"
+    category.high = "Access Management"
+    category.low = "Communication"
+else
+    action = "elevate"
+    object = "account"
+
+    subject.account.id = $DataSubject["Security ID"]
+    subject.account.name = lower($DataSubject["Account Name"])
+    subject.account.domain = lower($DataSubject["Account Domain"])
+    subject.account.session_id = maybe_number16($DataSubject["Logon ID"])
+
+    object.account.name = lower($DataAccountWhoseCredentialsWereUsed["Account Name"])
+    object.account.domain = lower($DataAccountWhoseCredentialsWereUsed["Account Domain"])
+
+    category.generic = "Account"
+    category.high = "Users And Rights Management"
+    category.low = "Manipulation"
+endif
+
+status = "failure"
+
+
+subject.process.id = maybe_number16($DataProcessInformation["Process ID"])
+
+$process_fullpath = replace(lower($DataProcessInformation["Process Name"]),'\\','&@',10000)
+$process_fullpath_csv = csv($process_fullpath, "\\", "")
+$process_name = $process_fullpath_csv[length($process_fullpath_csv) - 1]
+subject.process.name = $process_name
+subject.process.path = strip($process_fullpath, "", $process_name)
+subject.process.fullpath = $process_fullpath
+
+datafield6 = strip($DataSubject["Logon GUID"], '{', '}')  # Идентификатор сессии субъекта в формате UID
+datafield8 = strip($DataAccountWhoseCredentialsWereUsed["Logon GUID"], '{', '}')  # Идентификатор сессии объекта в формате UID
+
+
+if (maybe_ipv4($DataNetworkInformation["Network Address"]) != null) || (maybe_ipv6($DataNetworkInformation["Network Address"]) != null) then
+    src.ip = $InsertionStrings["Network Address"]
+endif
+
+if $DataNetworkInformation["Port"] != "-" then
+    src.port = $DataNetworkInformation["Port"]
+endif
+
+if find_substr($DataTargetServer["Target Server Name"], '.') != null then
+    dst.fqdn = lower($DataTargetServer["Target Server Name"])
+    dst.hostname = lower(substr($DataTargetServer["Target Server Name"], 0, find_substr($DataTargetServer["Target Server Name"], '.')))
+elif find_substr(lower($DataTargetServer["Target Server Name"]), 'localhost') == null then
+    dst.hostname = lower($DataTargetServer["Target Server Name"])
+endif
+
+time = $TimeCreated
+msgid = 4648
+importance = "medium"
+
+event_src.vendor = "microsoft"
+event_src.title = "windows"
+
+
+event_src.category = "AAA"
+
+id = "SL_Logstash_syslog_4648_A_logon_was_attempted_using_explicit_credentials"
+
+# -- DEPRECATED --
+# lines from here will be deleted in future releases
+
+subject.id = subject.account.id
+subject.name = subject.account.name
+subject.domain = subject.account.domain
+
+object.name = object.account.name
+object.domain = object.account.domain
+
+datafield1 = subject.account.session_id
+datafield2 = subject.process.id
+datafield3 = subject.process.fullpath

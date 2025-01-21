@@ -1,0 +1,7 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_4728_A_member_was_added_to_a_security_enabled_global_group"
+      LocalizationId: SL_Logstash_syslog_4728_A_member_was_added_to_a_security_enabled_global_group_1
+ObjectId: SEC-NF-185419334
+ExpertContext:
+    Created: 02.12.2024
+    Updated: 02.12.2024

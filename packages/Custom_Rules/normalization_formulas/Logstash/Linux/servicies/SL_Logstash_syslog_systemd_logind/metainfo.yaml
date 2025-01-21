@@ -1,0 +1,7 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_systemd_logind"
+      LocalizationId: SL_Logstash_syslog_systemd_logind_1
+ObjectId: SEC-NF-152507721
+ExpertContext:
+    Created: 28.11.2024
+    Updated: 28.11.2024

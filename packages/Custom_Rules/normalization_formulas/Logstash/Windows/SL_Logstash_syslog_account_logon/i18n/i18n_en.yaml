@@ -1,0 +1,10 @@
+Description: 'This rule is used to normalize authentication logs that record the fact that user credentials have been verified, specifying the source workstation and authentication method.'
+EventDescriptions:
+    - LocalizationId: 'normalization_SL_Logstash_syslog_account_logon'
+      EventDescription: 'NTLM authentication of the user {subject.account.name} requested on host {src.host} is unsuccessful on host {event_src.host}'
+    - LocalizationId: 'normalization_SL_Logstash_syslog_account_logon_2'
+      EventDescription: 'NTLM authentication of the user {subject.account.name} is unsuccessful on host {event_src.host}'
+    - LocalizationId: 'normalization_SL_Logstash_syslog_account_logon_3'
+      EventDescription: 'NTLM authentication of the user {subject.account.name} requested on host {src.host} is successful on host {event_src.host}'
+    - LocalizationId: 'normalization_SL_Logstash_syslog_account_logon_4'
+      EventDescription: 'NTLM authentication of the user {subject.account.name} is successful on host {event_src.host}'

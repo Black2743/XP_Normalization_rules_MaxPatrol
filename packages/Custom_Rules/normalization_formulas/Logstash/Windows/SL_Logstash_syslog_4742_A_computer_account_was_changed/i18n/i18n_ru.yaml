@@ -1,0 +1,4 @@
+Description: 'Замени эти слова на описание нормализации'
+EventDescriptions:
+    - LocalizationId: 'SL_Logstash_syslog_4742_A_computer_account_was_changed_1'
+      EventDescription: 'В домене {object.account.domain} изменена учетная запись компьютера {object.account.name} с узла {event_src.hostname}'

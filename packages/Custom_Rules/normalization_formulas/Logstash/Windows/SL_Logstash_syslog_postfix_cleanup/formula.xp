@@ -1,0 +1,45 @@
+# <13>Oct 29 11:35:59 
+# {"hostname":"mail-02.renlife.com","os":{"name":"CentOS Linux","family":"redhat","version":"7 (Core)",
+# "kernel":"3.10.0-1160.76.1.el7.x86_64","platform":"centos","codename":"Core"},"ip":"10.10.251.14",
+# "containerized":false,"name":"mail-02.renlife.com","id":"896c026f1bf24d2b8818dd27e0ece252","mac":["00:50:56:b8:2a:6f"],
+# "architecture":"x86_64"} 
+# LOGSTASH[-]: 2024-10-29T11:35:59.133Z {hostname=mail-02.renlife.com, 
+# os={name=CentOS Linux, family=redhat, version=7 (Core), kernel=3.10.0-1160.76.1.el7.x86_64, platform=centos, codename=Core}, 
+# ip=[10.10.251.14], containerized=false, name=mail-02.renlife.com, id=896c026f1bf24d2b8818dd27e0ece252, 
+# mac=[00:50:56:b8:2a:6f], architecture=x86_64} 
+# Oct 29 14:35:58 mail-02 postfix/cleanup[36086]: 730D6A0211: message-id=<20241029113558.730D6A0211@mail-02.renlife.com>
+
+TEXT = '<{NUMBER}> {DATETIME} {$1=UNTIL(" LOGSTASH[-]:")} {$time_own=DATETIME}
+{STRING*} {DATETIME}  mail-02  {$alert.context_own=STRING*}
+
+'
+submessage("JSON","Info", $1)
+subformula 'Info'
+    JSON=''
+    $event_src.hostname_own=$hostname
+    $event_src.id_own=$id
+    $event_src.title_own=$os["name"]
+    $event_src.ip_own=$ip[0]
+    $event_src.mac_own=$mac[0]
+endsubformula
+
+subject = "service"
+action = "clean"
+object = "mailbox"
+status = "success"
+
+time = $time_own
+
+event_src.vendor ="Elasticsearch"
+event_src.title = "Logstash"
+event_src.category = "Mail server"
+event_src.hostname=$event_src.hostname_own
+event_src.id=$event_src.id_own
+event_src.ip= $event_src.ip_own
+event_src.mac=$event_src.mac_own
+
+
+alert.context=$alert.context_own
+dst.asset=$list_elements[1]
+
+id = "SL_Logstash_syslog_postfix"

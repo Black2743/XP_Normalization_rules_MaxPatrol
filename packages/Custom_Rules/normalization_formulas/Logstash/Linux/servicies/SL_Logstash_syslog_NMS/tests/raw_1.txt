@@ -1,0 +1,1 @@
+<13>Dec 03 08:12:56 {"ip":"10.10.254.35"} LOGSTASH[-]: 2024-12-03T08:12:56.209200Z {ip=10.10.254.35} <180>%SNMP-W-SNMPAUTHFAIL: Access attempted by unauthorized NMS: 10.10.254.221

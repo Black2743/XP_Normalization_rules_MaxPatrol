@@ -1,0 +1,7 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_4799_Process_enumerates_members_of_security_enabled"
+      LocalizationId: SL_Logstash_syslog_4799_Process_enumerates_members_of_security_enabled_1
+ObjectId: SEC-NF-849949558
+ExpertContext:
+    Created: 03.12.2024
+    Updated: 03.12.2024

@@ -1,0 +1,17 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_4625_An_account_failed_to_log_on" and action = "elevate" and subject.account.name != null and object.account.name != null
+      LocalizationId: SL_Logstash_syslog_4625_An_account_failed_to_log_on_1
+    - Criteria: id = "SL_Logstash_syslog_4625_An_account_failed_to_log_on" and action = "elevate" and subject.account.name != null and object.account.name = null
+      LocalizationId: normalization_SL_Logstash_syslog_4625_An_account_failed_to_log_on_2
+    - Criteria: id = "SL_Logstash_syslog_4625_An_account_failed_to_log_on" and action = "elevate" and subject.account.name = null and object.account.name != null
+      LocalizationId: normalization_SL_Logstash_syslog_4625_An_account_failed_to_log_on_3
+    - Criteria: id = "SL_Logstash_syslog_4625_An_account_failed_to_log_on" and action = "elevate" and subject.account.name = null and object.account.name = null
+      LocalizationId: normalization_SL_Logstash_syslog_4625_An_account_failed_to_log_on_4
+    - Criteria: id = "SL_Logstash_syslog_4625_An_account_failed_to_log_on" and action = "login" and subject.account.name != null
+      LocalizationId: normalization_SL_Logstash_syslog_4625_An_account_failed_to_log_on_5
+    - Criteria: id = "SL_Logstash_syslog_4625_An_account_failed_to_log_on" and action = "login" and subject.account.name = null
+      LocalizationId: normalization_SL_Logstash_syslog_4625_An_account_failed_to_log_on_6
+ObjectId: SEC-NF-316850886
+ExpertContext:
+    Created: 27.11.2024
+    Updated: 27.11.2024

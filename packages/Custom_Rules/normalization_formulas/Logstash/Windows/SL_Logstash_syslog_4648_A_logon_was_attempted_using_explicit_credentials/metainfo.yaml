@@ -1,0 +1,7 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_4648_A_logon_was_attempted_using_explicit_credentials"
+      LocalizationId: SL_Logstash_syslog_4648_A_logon_was_attempted_using_explicit_credentials_1
+ObjectId: SEC-NF-102968165
+ExpertContext:
+    Created: 27.11.2024
+    Updated: 27.11.2024

@@ -1,0 +1,6 @@
+Description: 'Replace these words with a description of normalization'
+EventDescriptions:
+    - LocalizationId: 'SL_Logstash_syslog_session_status_for_user_1'
+      EventDescription: 'on host {dst.hostname} session is open for user {object.account.name}'
+    - LocalizationId: 'normalization_SL_Logstash_syslog_session_status_for_user_2'
+      EventDescription: 'on host {dst.hostname} session is closed for user {object.account.name}'

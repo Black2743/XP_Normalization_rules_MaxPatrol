@@ -1,0 +1,7 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_log_message_without_body"
+      LocalizationId: SL_Logstash_syslog_log_message_without_body_1
+ObjectId: SEC-NF-131569740
+ExpertContext:
+    Created: 05.11.2024
+    Updated: 05.11.2024

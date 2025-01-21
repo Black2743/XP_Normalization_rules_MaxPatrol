@@ -1,0 +1,73 @@
+# <13>Dec 02 08:14:24 {"name":"msk-dc-05","hostname":"msk-dc-05","id":"fb7bc85d-52b7-4363-aa3c-48f61ed51e8d","os":{"name":"Windows Server 2019 Standard","family":"windows","version":"10.0","build":"17763.3469","kernel":"10.0.17763.3469 (WinBuild.160101.0800)","platform":"windows"},"architecture":"x86_64"} 
+# LOGSTASH[-]: 2024-12-02T08:14:24.306Z {name=msk-dc-05, hostname=msk-dc-05, id=fb7bc85d-52b7-4363-aa3c-48f61ed51e8d, os={name=Windows Server 2019 Standard, family=windows, version=10.0, build=17763.3469, kernel=10.0.17763.3469 (WinBuild.160101.0800), platform=windows}, architecture=x86_64} 
+
+# A user account was unlocked.
+# \n\nSubject:
+#     Security ID:		S-1-5-21-1876890826-2823397126-3190577417-66126\n	
+#     Account Name:		Vishnvl_adm\n	
+#     Account Domain:		RENLIFE\n	
+#     Logon ID:		0xFD0765048
+# \n\nTarget Account:\n	
+#     Security ID:		S-1-5-21-1876890826-2823397126-3190577417-65552\n	
+#     Account Name:		Darya.Smirnova\n	
+#     Account Domain:		RENLIFE
+
+
+TEXT = '<{NUMBER}> {DATETIME} {$1=UNTIL("LOGSTASH[-]:")} {$TimeGenerated=DATETIME} {$2=STRING*} A user account was unlocked.
+{$uncut_info=STRING*}'
+alert.context="A user account was unlocked."
+
+
+submessage("JSON","Info", $1)
+subformula 'Info'
+    JSON=''
+    $ComputerName=$name
+    if find_substr($ComputerName, '.') != null then
+        event_src.fqdn = lower($ComputerName)
+        event_src.hostname = lower(substr($ComputerName, 0, find_substr($ComputerName, '.')))
+    else
+        event_src.hostname = lower($ComputerName)
+    endif
+    event_src.id=$id
+endsubformula
+
+$Data=keyvalue(strip(replace(replace($uncut_info,'&@',"\\\\",10000),'|',"&@n",10000),'||',''),'||',':','')
+
+    $DataSubject= keyvalue(strip($Data["Subject"],'| ',''),'|',':','')
+    $DataTargetAccount= keyvalue(strip($Data["Target Account"],'| ',''),'|',':','')
+ 
+
+subject = "account"
+action = "unlock"
+object = "account"
+status = "success"
+
+subject.account.id = $DataSubject["Security ID"]
+subject.account.name = lower($DataSubject["Account Name"])
+subject.account.domain = lower($DDataSubjectata["Account Domain"])
+
+object.account.name = lower($DataTargetAccount["Account Name"])
+object.account.domain = lower($DataTargetAccount["Account Domain"])
+object.account.id = $DataTargetAccount["Security ID"]
+
+datafield1 = maybe_number16($DataSubject["Security ID"])    # ID сессии
+
+msgid = 4767
+time = $TimeGenerated
+
+event_src.vendor = "microsoft"
+event_src.title = "windows"
+
+id = "SL_Logstash_syslog_4767_A_user_account_was_unlocked" 
+importance = "medium"
+
+# -- DEPRECATED --
+# lines from here will be deleted in future releases
+
+subject.id = subject.account.id
+subject.name = subject.account.name
+subject.domain = subject.account.domain
+
+object.id = object.account.id
+object.name = object.account.name
+object.domain = object.account.domain

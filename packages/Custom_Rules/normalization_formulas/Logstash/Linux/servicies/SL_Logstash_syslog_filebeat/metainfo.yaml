@@ -1,0 +1,7 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_filebeat"
+      LocalizationId: SL_Logstash_syslog_filebeat_1
+ObjectId: SEC-NF-128376572
+ExpertContext:
+    Created: 28.11.2024
+    Updated: 28.11.2024

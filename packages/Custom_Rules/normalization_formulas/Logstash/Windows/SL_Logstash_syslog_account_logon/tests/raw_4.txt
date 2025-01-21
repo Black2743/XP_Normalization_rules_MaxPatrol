@@ -1,0 +1,1 @@
+<13>Oct 31 08:34:17 {"name":"msk-dc-02"} LOGSTASH[-]: 2024-10-31T08:34:17.264Z {name=msk-dc-02} The computer attempted to validate the credentials for an account.\n\nAuthentication Package: MICROSOFT_AUTHENTICATION_PACKAGE_V1_0\nLogon Account: PolyaEk\nSource Workstation: M001D184\nError Code: 0x0

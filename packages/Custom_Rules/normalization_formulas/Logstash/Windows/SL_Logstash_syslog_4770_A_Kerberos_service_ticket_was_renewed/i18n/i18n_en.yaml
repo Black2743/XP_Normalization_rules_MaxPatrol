@@ -1,0 +1,4 @@
+Description: 'Replace these words with a description of normalization'
+EventDescriptions:
+    - LocalizationId: 'SL_Logstash_syslog_4770_A_Kerberos_service_ticket_was_renewed_1'
+      EventDescription: 'A Kerberos service ticket was renewed on {event_src.hostname}'

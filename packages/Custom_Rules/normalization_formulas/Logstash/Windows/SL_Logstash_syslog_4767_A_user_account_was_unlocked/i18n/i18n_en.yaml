@@ -1,0 +1,4 @@
+Description: 'Replace these words with a description of normalization'
+EventDescriptions:
+    - LocalizationId: 'SL_Logstash_syslog_4767_A_user_account_was_unlocked_1'
+      EventDescription: 'The user {subject.account.name} unlocked the user account "{object.account.name}" on host {event_src.hostname}'

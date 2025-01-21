@@ -1,0 +1,60 @@
+TEXT = '<{NUMBER}> {DATETIME} {$1=UNTIL("LOGSTASH[-]:")} {$TimeCreated=DATETIME} {$2=STRING*} Remote Desktop Services:
+{$uncut_info=STRING*}'
+alert.context="Remote Desktop Services"
+
+submessage("JSON","Info", $1)
+subformula 'Info'
+    JSON=''
+    $Computer=$name
+    if find_substr($Computer, '.') != null then
+        dst.fqdn = lower($Computer)
+        dst.hostname = lower(substr($Computer, 0, find_substr($Computer, '.')))
+    else
+        dst.hostname = lower($Computer)
+    endif
+    event_src.id=$id
+endsubformula
+
+
+$Data=keyvalue(strip(replace(replace($uncut_info,'&@',"\\\\",10000),'|',"&@n",10000),'||',''),'||',':','')
+    $DataUser= keyvalue(strip(("Account Name:"+$Data["User"]),'| ',''),'|',':','')
+
+subject = "account"
+action = "login"
+object = "system"
+status = "success"
+
+
+subject.account.session_id = $DataUser["Session ID"]
+
+ if find_substr($DataUser["Account Name"], '&@') != null then
+        subject.account.domain =  lower(substr($DataUser["Account Name"], 0, find_substr($DataUser["Account Name"], '&@')))
+        subject.account.name = csv($DataUser["Account Name"],'&@','')[1]
+    else
+        subject.account.name = lower($DataUser["Account Name"])
+    endif
+
+time = $TimeCreated
+msgid = $EventID
+importance = "info"
+
+category.generic = "Operating System"
+category.high = "Access Management"
+category.low = "Communication"
+
+event_src.fqdn = dst.fqdn
+event_src.hostname = dst.hostname
+event_src.vendor = "microsoft"
+event_src.title = "windows"
+
+event_src.category = "Terminal services"
+
+id = "SL_Logstash_syslog_21_RD_session_logon_succeeded"
+
+# -- DEPRECATED --
+# lines from here will be deleted in future releases
+
+subject.name = subject.account.name
+subject.domain = subject.account.domain
+
+datafield1 = subject.account.session_id

@@ -1,0 +1,7 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_execute_command"
+      LocalizationId: SL_Logstash_syslog_execute_command_1
+ObjectId: SEC-NF-667310646
+ExpertContext:
+    Created: 06.11.2024
+    Updated: 27.11.2024

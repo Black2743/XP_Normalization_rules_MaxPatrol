@@ -1,0 +1,6 @@
+Description: 'Replace these words with a description of normalization'
+EventDescriptions:
+    - LocalizationId: 'SL_Logstash_syslog_kerberos_service_ticket_requested_1'
+      EventDescription: 'The Kerberos service on host {event_src.host} failed to issue a session ticket, which is requested from host {src.host}, for the account {subject.account.name} to access the service {logon_service}'
+    - LocalizationId: 'normalization_SL_Logstash_syslog_kerberos_service_ticket_requested_2'
+      EventDescription: 'The Kerberos service on host {event_src.host} issued a session ticket, which is requested from host {src.host}, for the account {subject.account.name} to access the service {logon_service}'

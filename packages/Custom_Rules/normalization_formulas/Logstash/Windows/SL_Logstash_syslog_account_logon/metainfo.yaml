@@ -1,0 +1,13 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_account_logon" and status = "failure" and src.host != null
+      LocalizationId: normalization_SL_Logstash_syslog_account_logon
+    - Criteria: id = "SL_Logstash_syslog_account_logon"  and status = "failure" and src.host = null
+      LocalizationId: normalization_SL_Logstash_syslog_account_logon_2
+    - Criteria: id = "SL_Logstash_syslog_account_logon"and status = "success" and src.host != null
+      LocalizationId: normalization_SL_Logstash_syslog_account_logon_3
+    - Criteria: id = "SL_Logstash_syslog_account_logon" and status = "success" and src.host = null
+      LocalizationId: normalization_SL_Logstash_syslog_account_logon_4
+ExpertContext:
+    Created: 20.10.2024
+    Updated: 04.11.2024
+ObjectId: SEC-NF-764486070

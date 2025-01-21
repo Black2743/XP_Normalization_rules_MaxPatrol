@@ -1,0 +1,102 @@
+# <13>Dec 02 08:25:46 {"name":"msk-dc-04","hostname":"msk-dc-04","id":"cee82a30-ffd9-42cf-b616-50c2be4da5b0","os":{"name":"Windows Server 2016 Standard","family":"windows","version":"10.0","build":"14393.4350","kernel":"10.0.14393.4350 (rs1_release.210407-2154)","platform":"windows"},"architecture":"x86_64"} LOGSTASH[-]: 2024-12-02T08:25:46.857Z {name=msk-dc-04, hostname=msk-dc-04, id=cee82a30-ffd9-42cf-b616-50c2be4da5b0, os={name=Windows Server 2016 Standard, family=windows, version=10.0, build=14393.4350, kernel=10.0.14393.4350 (rs1_release.210407-2154), platform=windows}, architecture=x86_64} 
+
+# A user account was locked out.
+# \n\nSubject:\n	
+#     Security ID:		S-1-5-18\n	
+#     Account Name:		MSK-DC-04$\n	
+#     Account Domain:		RENLIFE\n	
+#     Logon ID:		0x3E7
+# \n\nAccount That Was Locked Out:\n	
+#     Security ID:		S-1-5-21-1876890826-2823397126-3190577417-39579\n	
+#     Account Name:		Yuliya.Filippova
+# \n\nAdditional Information:\n	
+#     Caller Computer Name:	E19-02
+
+
+TEXT = '<{NUMBER}> {DATETIME} {$1=UNTIL("LOGSTASH[-]:")} {$TimeGenerated=DATETIME} {$2=STRING*} A user account was locked out.
+{$uncut_info=STRING*}'
+alert.context="A user account was locked out."
+
+subject = "account"
+action = "modify"
+object = "account"
+status = "success"
+
+submessage("JSON","Info", $1)
+subformula 'Info'
+    JSON=''
+    $ComputerName=$name
+    if find_substr($ComputerName, '.') != null then
+        event_src.fqdn = lower($ComputerName)
+        event_src.hostname = lower(substr($ComputerName, 0, find_substr($ComputerName, '.')))
+    else
+        event_src.hostname = lower($ComputerName)
+    endif
+    event_src.id=$id
+
+    if find_substr($ComputerName, '.') != null then
+        dst.fqdn = lower($ComputerName)
+        dst.hostname = lower(substr($ComputerName, 0, find_substr($ComputerName, '.')))
+    else
+        dst.hostname = lower($ComputerName)
+    endif
+endsubformula
+$Data=keyvalue(strip(replace(replace($uncut_info,'&@',"\\\\",10000),'|',"&@n",10000),'||',''),'||',':','')
+
+    $DataSubject= keyvalue(strip($Data["Subject"],'| ',''),'|',':','')
+    $DataAccountThatWasLockedOut= keyvalue(strip($Data["Account That Was Locked Out"],'| ',''),'|',':','')
+    $DataAdditionalInformation=keyvalue(strip($Data["Additional Information"],'| ',''),'|',':','')
+
+
+subject = "account"
+action = "lock"
+object = "account"
+status = "success"
+
+subject.account.id = $DataSubject["Security ID"]
+subject.account.name = lower($DataSubject["Account Name"])
+subject.account.domain = lower($DataSubject["Account Domain"])
+subject.account.session_id = maybe_number16($DataSubject["Logon ID"])
+
+object.account.id = $DataAccountThatWasLockedOut["Security ID"]
+object.account.name = lower($DataAccountThatWasLockedOut["Account Name"])
+
+$target_domain = replace($DataAccountThatWasLockedOut["Account Domain"],'','\\\\')
+
+if (maybe_ipv4($target_domain) == null) and (maybe_ipv6($target_domain) == null) then
+    object.account.domain = lower($target_domain)
+    if (find_substr($target_domain, '.') != null) then
+        src.fqdn = lower($target_domain)
+        src.hostname = lower(substr($target_domain, 0, find_substr($target_domain, '.')))
+    else
+        src.hostname = lower($target_domain)
+    endif
+else 
+    src.ip = $target_domain
+endif
+
+
+
+msgid = 4740
+time = $TimeGenerated
+importance = "medium"
+
+event_src.vendor = "microsoft"
+event_src.title = "windows"
+
+event_src.category = "Operating system"
+
+id = "SL_Logstash_syslog_4740_A_user_account_was_locked_out"
+
+# -- DEPRECATED --
+# lines from here will be deleted in future releases
+
+subject.id = subject.account.id
+subject.name = subject.account.name
+subject.domain = subject.account.domain
+
+object.name = object.account.name
+object.domain = object.account.domain
+object.id = object.account.id
+
+datafield1 = subject.account.session_id    # ID сессии

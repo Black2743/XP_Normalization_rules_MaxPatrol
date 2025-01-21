@@ -1,0 +1,23 @@
+TEXT = '<{NUMBER}> {DATETIME} {$1=UNTIL("LOGSTASH[-]:")} {$TimeCreated=DATETIME} {$2=STRING*}
+%{LITERAL}message{LITERAL}'
+
+alert.context=$alert_context
+submessage("JSON","Info", $1)
+subformula 'Info'
+    JSON=''
+    src.hostname=$name
+    event_src.ip=$ip
+    event_src.category = "Operating system"
+    importance="low"
+endsubformula
+
+dst.ip=$dstip
+
+subject = "service"
+action = "info"
+object = "host"
+status = "ongoing"
+
+time = $TimeCreated
+
+id = "SL_Logstash_syslog_log_message_without_body"

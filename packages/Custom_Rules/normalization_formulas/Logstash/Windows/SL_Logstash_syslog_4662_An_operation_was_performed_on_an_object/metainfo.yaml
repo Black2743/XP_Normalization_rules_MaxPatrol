@@ -1,0 +1,7 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_4662_An_operation_was_performed_on_an_object"
+      LocalizationId: SL_Logstash_syslog_4662_An_operation_was_performed_on_an_object_1
+ObjectId: SEC-NF-193480447
+ExpertContext:
+    Created: 02.12.2024
+    Updated: 02.12.2024

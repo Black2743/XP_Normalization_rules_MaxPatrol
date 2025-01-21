@@ -1,0 +1,7 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_403_Engine_state_changed_to_Stopped"
+      LocalizationId: SL_Logstash_syslog_403_Engine_state_changed_to_Stopped_1
+ObjectId: SEC-NF-103733506
+ExpertContext:
+    Created: 28.11.2024
+    Updated: 28.11.2024

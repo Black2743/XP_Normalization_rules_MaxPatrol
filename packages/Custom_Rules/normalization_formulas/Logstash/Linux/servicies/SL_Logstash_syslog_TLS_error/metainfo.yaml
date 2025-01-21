@@ -1,0 +1,7 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_TLS_error"
+      LocalizationId: SL_Logstash_syslog_TLS_error_1
+ObjectId: SEC-NF-10002201
+ExpertContext:
+    Created: 03.12.2024
+    Updated: 03.12.2024

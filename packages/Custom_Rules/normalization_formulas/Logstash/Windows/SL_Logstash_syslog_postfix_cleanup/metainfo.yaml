@@ -1,0 +1,7 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_postfix_cleanup"
+      LocalizationId: LOC_Vendor_Title_syslog_event_name_1
+ExpertContext:
+    Created: 27.10.2024
+    Updated: 04.11.2024
+ObjectId: SEC-NF-673569574

@@ -1,0 +1,21 @@
+#<13>Dec 02 14:25:59 {"ip":"10.10.254.52"} LOGSTASH[-]: 2024-12-02T14:25:59.968608Z {ip=10.10.254.52} <183>229320: 222242: .Dec  2 17:25:58: NTP Core (NOTICE): Clock is synchronized.
+
+TEXT = '<{NUMBER}>{DATETIME} {$1=UNTIL("LOGSTASH[-]:")} {$TimeCreated=DATETIME}{STRING*} NTP Core {$alert.context=STRING*}'
+
+alert.context=$alert_context
+submessage("JSON","Info", $1)
+subformula 'Info'
+    JSON=''
+    event_src.ip=$ip
+    importance="low"
+endsubformula
+
+subject = "service"
+subject.name="NTP"
+action = "info"
+object = "host"
+status = "ongoing"
+
+time = $TimeCreated
+
+id = "SL_Logstash_syslog_NTP"

@@ -1,0 +1,1 @@
+<13>Oct 22 07:29:02 {"name":"msk-dc-02"} LOGSTASH[-]: 2024-10-22T07:29:02.113Z {name=msk-dc-02} The computer attempted to validate the credentials for an account.\n\nAuthentication Package: MICROSOFT_AUTHENTICATION_PACKAGE_V1_0\nLogon Account: Mihail.Malahov\nSource Workstation: M001D185\nError Code: 0x0

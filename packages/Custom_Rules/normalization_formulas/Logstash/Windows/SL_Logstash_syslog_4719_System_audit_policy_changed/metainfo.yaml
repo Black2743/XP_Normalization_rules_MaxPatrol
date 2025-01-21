@@ -1,0 +1,7 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_4719_System_audit_policy_changed"
+      LocalizationId: SL_Logstash_syslog_4719_System_audit_policy_changed_1
+ObjectId: SEC-NF-163250304
+ExpertContext:
+    Created: 03.12.2024
+    Updated: 03.12.2024

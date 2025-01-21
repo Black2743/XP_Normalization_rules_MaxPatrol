@@ -1,0 +1,7 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_SEC_failed"
+      LocalizationId: SL_Logstash_syslog_SEC_failed_1
+ObjectId: SEC-NF-124979102
+ExpertContext:
+    Created: 03.12.2024
+    Updated: 03.12.2024

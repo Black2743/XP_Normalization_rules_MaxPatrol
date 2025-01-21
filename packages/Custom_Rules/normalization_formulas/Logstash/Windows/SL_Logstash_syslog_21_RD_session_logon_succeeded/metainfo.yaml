@@ -1,0 +1,7 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_21_RD_session_logon_succeeded"
+      LocalizationId: SL_Logstash_syslog_21_RD_session_logon_succeeded_1
+ObjectId: SEC-NF-197479301
+ExpertContext:
+    Created: 02.12.2024
+    Updated: 02.12.2024

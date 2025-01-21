@@ -1,0 +1,7 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_log_options_import"
+      LocalizationId: SL_Logstash_syslog_log_options_import_1
+ObjectId: SEC-NF-703030496
+ExpertContext:
+    Created: 03.12.2024
+    Updated: 03.12.2024

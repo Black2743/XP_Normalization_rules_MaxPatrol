@@ -1,0 +1,4 @@
+Description: 'Replace these words with a description of normalization'
+EventDescriptions:
+    - LocalizationId: 'informix_1'
+      EventDescription: 'The service on the {event_src.ip} machine executed the {alert.key} method'

@@ -1,0 +1,4 @@
+Description: 'Замени эти слова на описание нормализации'
+EventDescriptions:
+    - LocalizationId: 'LOC_Vendor_Title_syslog_event_name_1'
+      EventDescription: 'Обработка электронной почты на сервере  {event_src.hostname} ({event_src.ip}), идентификатор сообщения {dst.asset}'

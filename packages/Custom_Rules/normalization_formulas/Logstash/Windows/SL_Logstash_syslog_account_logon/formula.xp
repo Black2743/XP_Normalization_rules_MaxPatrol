@@ -1,0 +1,94 @@
+TEXT = '<{NUMBER}> {DATETIME} {$1=UNTIL("LOGSTASH[-]:")} {$TimeCreated=DATETIME} {$2=STRING*} The computer attempted to validate the credentials for an account.
+{$uncut_info=STRING*} '
+alert.context="The computer attempted to validate the credentials for an account."
+submessage("JSON","Info", $1)
+subformula 'Info'
+    JSON=''
+    $Computer=$name
+    event_src.id=$id
+endsubformula
+$cut_info=strip(replace(replace($uncut_info,'&@',"\\\\",100),'|',"&@n",100),'||','')
+$Data=keyvalue($cut_info,'|',':','')
+subject = "account"
+action = "login"
+object = "system"
+
+if $Data["Error Code"] == "0x0" then
+    status = "success"
+else
+    status = "failure"
+endif
+
+if find_substr($Data["Logon Account"],"@")!=null then
+   $dog_num = find_substr($Data["Logon Account"],"@")
+   subject.account.name = lower(substr($Data["Logon Account"], 0, $dog_num))
+   subject.account.domain = lower(substr($Data["Logon Account"], $dog_num+1, length($Data["Logon Account"])))
+else
+   subject.account.name=lower($Data["Logon Account"])
+endif
+
+$workstation = strip($Data["Source Workstation"], "\\\\", "")
+if maybe_ipv4($workstation) != null or maybe_ipv6($workstation) != null then
+    src.ip = $workstation
+else
+    $hostname = $workstation
+endif
+
+if find_substr($hostname, '.') != null then
+    src.fqdn = lower($hostname)
+    src.hostname = lower(substr($hostname, 0, find_substr($hostname, '.')))
+else
+    src.hostname = lower($hostname)
+endif
+
+reason = lower($Data["Error Code"])
+datafield1 = switch reason
+    case "0xc0000064" "User name does not exist"
+    case "0xc000006a" "User name is correct but the password is wrong"
+    case "0xc0000234" "User is currently locked out"
+    case "0xc0000072" "Account is currently disabled"
+    case "0xc000006f" "User tried to logon outside his day of week or time of day restrictions"
+    case "0xc0000070" "Workstation restriction"
+    case "0xc0000192" "An attempt was made to logon but the netlogon service was not started"
+    case "0xc0000193" "Account expiration"
+    case "0xc0000071" "Expired password"
+    case "0xc0000133" "Clocks between DC and other computer too far out of sync"
+    case "0xc0000413" "The machine you are logging onto is protected by an authentication firewall. The specified account is not allowed to authenticate to the machine"
+    case "0xc0000224" "User is required to change password at next logon"
+    case "0xc0000225" "Object was not found"
+    case "0xc000015b" "The user has not been granted the requested logon type (aka logon right) at this machine"
+    case "0xc000006d" "This is either due to a bad username or authentication information"
+    case "0xc000006e" "User name and authentication information are valid but some user account restriction has prevented successful authentication (such as time-of-day restrictions)"
+    case "0xc000018c" "The logon request failed because the trust relationship between the primary domain and the trusted domain failed"
+    case "0xc000005e" "There are currently no logon servers available to service the logon request"
+    case "0xc00000dc" "Indicates the Sam Server was in the wrong state to perform the desired operation"
+    case "0xc0000371" "The local account store does not contain secret material for the specified account"
+    case "0xc00002a1" "The specified directory service attribute or value does not exist"
+    case "0xc0000383" "No smart card is available"
+    case "0xc00002a6" "The directory service is unavailable"
+    case "0xc00000e5" "An internal error occurred"
+    case "0x0" "status OK"
+endswitch
+
+datafield2 = lower($Data["Package Name"])
+time=$TimeCreated
+msgid = "4776"
+importance = "low"
+category.generic = "Operating System"
+category.high = "Access Management"
+category.low = "Communication"
+event_src.vendor = "microsoft"
+event_src.title = "windows"
+# event_src.subsys = $Channel
+if find_substr($Computer, '.') != null then
+    event_src.fqdn = lower($Computer)
+    event_src.hostname = lower(substr($Computer, 0, find_substr($Computer, '.')))
+else
+    event_src.hostname = lower($Computer)
+endif
+event_src.category = "AAA"
+# event_src.id = $Provider["Name"]
+id="SL_Logstash_syslog_account_logon"
+subject.name = subject.account.name
+subject.domain = subject.account.domain
+subject.id = subject.account.id

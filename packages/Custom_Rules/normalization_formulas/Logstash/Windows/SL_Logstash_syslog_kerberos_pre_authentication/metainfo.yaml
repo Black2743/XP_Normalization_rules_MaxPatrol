@@ -1,0 +1,7 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_kerberos_pre_authentication"
+      LocalizationId: SL_Logstash_syslog_kerberos_pre_authentication_1
+ObjectId: SEC-NF-185208598
+ExpertContext:
+    Created: 22.11.2024
+    Updated: 27.11.2024

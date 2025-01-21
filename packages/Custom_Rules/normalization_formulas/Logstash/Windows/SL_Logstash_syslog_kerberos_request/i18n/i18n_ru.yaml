@@ -1,0 +1,10 @@
+Description: 'Был запрошен билет аутентификации Kerberos'
+EventDescriptions:
+    - LocalizationId: 'SL_Logstash_syslog_kerberos_request_1'
+      EventDescription: 'Kerberos-аутентификация пользователя {subject.account.name}, запрошенная с узла {src.host}, завершилась ошибкой. Службе Kerberos на узле {event_src.host} не удалось выдать билет проверки подлинности Kerberos (TGT).'
+    - LocalizationId: 'normalization_SL_Logstash_syslog_kerberos_request_2'
+      EventDescription: 'Kerberos-аутентификация пользователя, запрошенная с узла {src.host}, завершилась ошибкой. Службе Kerberos на узле {event_src.host} не удалось выдать билет проверки подлинности Kerberos (TGT).'
+    - LocalizationId: 'normalization_SL_Logstash_syslog_kerberos_request_3'
+      EventDescription: 'Kerberos-аутентификация пользователя {subject.account.name}, запрошенная с узла {src.host}, прошла успешно. Служба Kerberos на узле {event_src.host} выдала билет проверки подлинности Kerberos (TGT).'
+    - LocalizationId: 'normalization_SL_Logstash_syslog_kerberos_request_4'
+      EventDescription: 'Kerberos-аутентификация пользователя, запрошенная с узла {src.host}, прошла успешно. Служба Kerberos на узле {event_src.host} выдала билет проверки подлинности Kerberos (TGT).'

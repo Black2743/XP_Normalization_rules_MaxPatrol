@@ -1,0 +1,4 @@
+Description: 'Replace these words with a description of normalization'
+EventDescriptions:
+    - LocalizationId: 'SL_Logstash_syslog_log_message_without_body_1'
+      EventDescription: 'Empty log on host {object.name}'

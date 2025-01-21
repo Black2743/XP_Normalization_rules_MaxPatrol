@@ -1,0 +1,7 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_4770_A_Kerberos_service_ticket_was_renewed"
+      LocalizationId: SL_Logstash_syslog_4770_A_Kerberos_service_ticket_was_renewed_1
+ObjectId: SEC-NF-80824546
+ExpertContext:
+    Created: 27.11.2024
+    Updated: 27.11.2024

@@ -1,0 +1,4 @@
+Description: 'Replace these words with a description of normalization'
+EventDescriptions:
+    - LocalizationId: 'SL_Logstash_syslog_4742_A_computer_account_was_changed_1'
+      EventDescription: 'The computer account "{object.account.name}" is changed in domain {object.account.domain} on host {event_src.hostname}'

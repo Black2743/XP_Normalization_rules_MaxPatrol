@@ -1,0 +1,7 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_GNRL_EV_VIRUS_FOUND"
+      LocalizationId: SL_Logstash_syslog_GNRL_EV_VIRUS_FOUND_1
+ObjectId: SEC-NF-118373098
+ExpertContext:
+    Created: 04.12.2024
+    Updated: 04.12.2024

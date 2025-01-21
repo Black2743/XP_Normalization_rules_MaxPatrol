@@ -1,0 +1,7 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_realmd"
+      LocalizationId: SL_Logstash_syslog_realmd_1
+ObjectId: SEC-NF-678851849
+ExpertContext:
+    Created: 03.12.2024
+    Updated: 03.12.2024

@@ -1,0 +1,4 @@
+Description: 'Замени эти слова на описание нормализации'
+EventDescriptions:
+    - LocalizationId: 'SL_Logstash_syslog_NPS_granted_access_to_a_user_1'
+      EventDescription: 'Сервер сетевых политик на узле {event_src.host} предоставил пользователю {subject.account.name} доступ к узлу'

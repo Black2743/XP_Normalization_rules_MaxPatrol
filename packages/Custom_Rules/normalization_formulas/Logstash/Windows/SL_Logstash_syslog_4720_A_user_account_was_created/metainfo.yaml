@@ -1,0 +1,7 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_4720_A_user_account_was_created"
+      LocalizationId: SL_Logstash_syslog_4720_A_user_account_was_created_1
+ObjectId: SEC-NF-136554412
+ExpertContext:
+    Created: 29.11.2024
+    Updated: 29.11.2024

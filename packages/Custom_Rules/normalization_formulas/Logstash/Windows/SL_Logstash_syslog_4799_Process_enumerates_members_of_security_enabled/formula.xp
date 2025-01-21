@@ -1,0 +1,93 @@
+# <13>Dec 03 09:24:34 {"name":"msk-dc-04","hostname":"msk-dc-04","id":"cee82a30-ffd9-42cf-b616-50c2be4da5b0","os":{"name":"Windows Server 2016 Standard","family":"windows","version":"10.0","build":"14393.4350","kernel":"10.0.14393.4350 (rs1_release.210407-2154)","platform":"windows"},"architecture":"x86_64"} LOGSTASH[-]: 2024-12-03T09:24:34.189Z {name=msk-dc-04, hostname=msk-dc-04, id=cee82a30-ffd9-42cf-b616-50c2be4da5b0, os={name=Windows Server 2016 Standard, family=windows, version=10.0, build=14393.4350, kernel=10.0.14393.4350 (rs1_release.210407-2154), platform=windows}, architecture=x86_64} 
+# A security-enabled local group membership was enumerated.
+# \n\nSubject:\n	
+#     Security ID:		S-1-5-18\n	
+#     Account Name:		MSK-DC-04$\n	
+#     Account Domain:		RENLIFE\n	
+#     Logon ID:		0x3E7
+
+# \n\nGroup:\n	
+#     Security ID:		S-1-5-32-551\n	
+#     Group Name:		Backup Operators\n	
+#     Group Domain:		Builtin
+
+# \n\nProcess Information:\n	
+#     Process ID:		0x112c\n	
+#     Process Name:		C:\Program Files\Veritas\Backup Exec\RAWS\beremote.exe
+
+TEXT = '<{NUMBER}> {DATETIME} {$1=UNTIL("LOGSTASH[-]:")} {$TimeGenerated=DATETIME} {$2=STRING*} A security-enabled local group membership was enumerated.
+{$uncut_info=STRING*}'
+alert.context="A security-enabled local group membership was enumerated."
+
+submessage("JSON","Info", $1)
+subformula 'Info'
+    JSON=''
+    $ComputerName=$name
+    if find_substr($ComputerName, '.') != null then
+        event_src.fqdn = lower($ComputerName)
+        event_src.hostname = lower(substr($ComputerName, 0, find_substr($ComputerName, '.')))
+    else
+        event_src.hostname = lower($ComputerName)
+    endif
+    event_src.id=$id
+endsubformula
+
+$Data=keyvalue(strip(replace(replace($uncut_info,'&@',"\\\\",10000),'|',"&@n",10000),'||',''),'||',':','')
+    $DataSubject= keyvalue(strip($Data["Subject"],'| ',''),'|',':','')
+    $DataGroup= keyvalue(strip($Data["Group"],'| ',''),'|',':','')
+    $DataProcessInformation= keyvalue(strip($Data["Process Information"],'| ',''),'|',':','')
+
+
+
+subject = "account"
+action = "view"
+object = "user_group"
+status = "success"
+
+subject.account.id = $DataSubject["Security ID"]
+subject.account.name = lower($DataSubject["Account Name"])
+subject.account.domain = lower($DataSubject["Account Domain"])
+subject.account.session_id = maybe_number16($DataSubject["Logon ID"])
+
+if $DataProcessInformation["Process ID"] != "0x0" then
+    subject.process.id = maybe_number16($DataProcessInformation["Process ID"])
+endif
+
+if $DataProcessInformation["Process Name"] != "-" then
+    subject.process.fullpath = lower(replace($DataProcessInformation["Process Name"],"\\","&@"))
+    $name_tmp = csv(subject.process.fullpath, "\\", "'")
+    subject.process.name = $name_tmp[length($name_tmp) - 1]
+    subject.process.path = strip(subject.process.fullpath, "", subject.process.name)
+endif
+
+object.type = "local security-enabled"
+object.name = $DataGroup["Group Name"]
+object.id = $DataGroup["Security ID"]
+
+msgid = 4799
+time = $TimeGenerated
+importance = "info"
+
+category.generic = "Group"
+category.high = "Users And Rights Management"
+category.low = "Manipulation"
+
+
+event_src.vendor = "microsoft"
+event_src.title = "windows"
+event_src.category = "Operating system"
+
+
+id = "SL_Logstash_syslog_4799_Process_enumerates_members_of_security_enabled"
+
+# -- DEPRECATED --
+# lines from here will be deleted in future releases
+
+subject.id = subject.account.id
+subject.name = subject.account.name
+subject.domain = subject.account.domain
+
+datafield1 = subject.account.session_id    # ID сессии
+datafield2 = subject.process.id            # ID перечисляющего процесса
+datafield3 = subject.process.fullpath
+datafield4 = subject.process.name

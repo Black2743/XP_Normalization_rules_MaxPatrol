@@ -1,0 +1,426 @@
+# <13>Nov 29 06:25:42 {"name":"msk-dc-02"} LOGSTASH[-]: 2024-11-29T06:25:42.895Z {name=msk-dc-02}
+
+#  A user account was created.
+#  \n\nSubject:
+#     \n	Security ID:		S-1-5-21-1876890826-2823397126-3190577417-51144\n	
+#     Account Name:		Sheryiv_adm\n	
+#     Account Domain:		RENLIFE\n	
+#     Logon ID:		0x3239B649A9
+# \n\nNew Account:\n	
+#     Security ID:		S-1-5-21-1876890826-2823397126-3190577417-67626\n	
+#     Account Name:		Nina.Kovalevskaya\n	
+#     Account Domain:		RENLIFE\
+# n\nAttributes:\n	
+#     SAM Account Name:	Nina.Kovalevskaya\n	
+#     Display Name:		Kovalevskaya Nina\n	
+#     User Principal Name:	Nina.Kovalevskaya@mos.renlife.com\n	
+#     Home Directory:		-\n	
+#     Home Drive:		-\n	
+#     Script Path:		agent.vbs\n	
+#     Profile Path:		-\n	
+#     User Workstations:	-\n	
+#     Password Last Set:	<never>\n	
+#     Account Expires:		<never>\n	
+#     Primary Group ID:	513\n	
+#     Allowed To Delegate To:	-\n	
+#     Old UAC Value:		0x0\n	
+#     New UAC Value:		0x15\n	
+#     User Account Control:	\n		
+#     Account Disabled\n		'Password Not Required' - Enabled\n		'Normal Account' - Enabled\n	
+#     User Parameters:	-\n	
+#     SID History:		-\n	
+#     Logon Hours:		<value not set>
+# \n\nAdditional Information:\n	
+#     Privileges		-
+
+
+TEXT = '<{NUMBER}> {DATETIME} {$1=UNTIL("LOGSTASH[-]:")} {$TimeGenerated=DATETIME} {$2=STRING*} A user account was created.
+{$uncut_info=STRING*}'
+alert.context="A user account was created."
+
+
+submessage("JSON","Info", $1)
+subformula 'Info'
+    JSON=''
+    $ComputerName=$name
+    if find_substr($ComputerName, '.') != null then
+        event_src.fqdn = lower($ComputerName)
+        event_src.hostname = lower(substr($ComputerName, 0, find_substr($ComputerName, '.')))
+    else
+        event_src.hostname = lower($ComputerName)
+    endif
+    event_src.id=$id
+endsubformula
+
+$Data=keyvalue(strip(replace(replace($uncut_info,'&@',"\\\\",10000),'|',"&@n",10000),'||',''),'||',':','')
+
+    $DataSubject= keyvalue(strip($Data["Subject"],'| ',''),'|',':','')
+    $DataNewAccount= keyvalue(strip($Data["New Acount"],'| ',''),'|',':','')
+    $DataAttributes=keyvalue(strip($Data["Attributes"],'| ',''),'|',':','')
+    $DataAdditionalInformation=keyvalue(strip($Data["Additional Information"],'| ',''),'|',':','')
+
+
+subject = "account"
+action = "create"
+object = "account"
+status = "success"
+
+
+#subject
+    subject.account.id = $DataSubject["Security ID"]
+    subject.account.name = lower($DataSubject["Account Name"])
+    subject.account.domain = lower($DaDataSubjectta["Account Domain"])
+    subject.account.session_id = maybe_number16($DataSubject["Logon ID"])
+
+#object
+    object.account.name = lower($DataNewAccount["Account Name"])
+    object.account.domain = lower($DataNewAccount["Account Domain"])
+    object.account.id = $DataNewAccount["Security ID"]
+
+
+if $DataAttributes["User Account Control"] != null and $DataAttributes["User Account Control"] != "-" then
+    $decoded_uac = []
+    
+    ###важные коды###
+    
+    if find_substr($DataAttributes["User Account Control"], "%%2057") != null then
+        #Should be monitored for all accounts where the setting should be "Enabled"
+        $decoded_uac = append($decoded_uac, "Don't expire password: disabled")
+    endif
+    if find_substr($DataAttributes["User Account Control"],"%%2089") != null then
+        #Should be monitored for critical accounts, or all accounts if your organization does not allow this flag
+        $decoded_uac = append($decoded_uac, "Don't expire password: enabled")
+    endif
+    
+    if find_substr($DataAttributes["User Account Control"], "%%2050") != null then
+        #Should be monitored for all accounts where the setting should be "Enabled"
+        $decoded_uac = append($decoded_uac, "Password not required: disabled")
+    endif
+    if find_substr($DataAttributes["User Account Control"], "%%2082") != null then
+        #Should not typically be enabled for user accounts because it weakens security for the account
+        $decoded_uac = append($decoded_uac, "Password not required: enabled")
+    endif
+ 
+    if find_substr($DataAttributes["User Account Control"],"%%2048") != null then
+        $decoded_uac = append($decoded_uac, "Account disable: disabled")
+    endif
+    if find_substr($DataAttributes["User Account Control"],"%%2080") != null then
+        $decoded_uac = append($decoded_uac, "Account disable: enabled")
+    endif
+
+    if find_substr($DataAttributes["User Account Control"],"%%2052") != null then
+        #Should not be disabled for user accounts
+        $decoded_uac = append($decoded_uac, "Normal account: disabled")
+    endif
+    if find_substr($DataAttributes["User Account Control"],"%%2084") != null then
+        $decoded_uac = append($decoded_uac, "Normal account: enabled")
+    endif
+
+    if find_substr($DataAttributes["User Account Control"],"%%2059") != null then
+        #Should be monitored for all accounts where the setting should be "Enabled"
+        $decoded_uac = append($decoded_uac, "Encrypted text password allowed: disabled")
+    endif
+    if find_substr($DataAttributes["User Account Control"],"%%2091") != null then
+        #Should not typically be enabled for user accounts because it weakens security for the account
+        $decoded_uac = append($decoded_uac, "Encrypted text password allowed: enabled")
+    endif
+
+    if find_substr($DataAttributes["User Account Control"],"%%2056") != null then
+        $decoded_uac = append($decoded_uac, "Server trust account: disabled")
+    endif
+    if find_substr($DataAttributes["User Account Control"],"%%2088") != null then
+        #Should never be enabled for user accounts. Applies only to domain controller (computer) accounts
+        $decoded_uac = append($decoded_uac, "Server trust account: enabled")
+    endif
+
+    if find_substr($DataAttributes["User Account Control"],"%%2060") != null then
+        #Should be monitored for all accounts where the setting should be "Enabled"
+        $decoded_uac = append($decoded_uac, "Smartcard required: disabled")
+    endif
+    if find_substr($DataAttributes["User Account Control"],"%%2092") != null then
+        #Should be monitored for critical accounts
+        $decoded_uac = append($decoded_uac, "Smartcard required: enabled")
+    endif
+        
+    if find_substr($DataAttributes["User Account Control"],"%%2061") != null then
+        #Means that Kerberos Constraint or Unconstraint delegation was disabled for the user account. We recommend monitoring this to discover whether it is an approved action (done by an administrator), a mistake, or a malicious action. Also, if you have a list of user accounts for which delegation is critical and should not be disabled, monitor this for those accounts
+        $decoded_uac = append($decoded_uac, "Trusted for delegation: disabled")
+    endif
+    if find_substr($DataAttributes["User Account Control"],"%%2093") != null then
+        #Means that Kerberos Constraint or Unconstraint delegation was enabled for the user account. We recommend monitoring this to discover whether it is an approved action (done by an administrator), a mistake, or a malicious action
+        $decoded_uac = append($decoded_uac, "Trusted for delegation: enabled")
+    endif
+     
+    if find_substr($DataAttributes["User Account Control"],"%%2066") != null then
+        #Means that Protocol Transition delegation was disabled for the user account. We recommend monitoring this to discover whether it is an approved action (done by an administrator), a mistake, or a malicious action. Also, if you have a list of user accounts for which delegation is critical and should not be disabled, monitor this for those accounts
+        $decoded_uac = append($decoded_uac, "Trusted to authenticate for delegation: disabled")
+    endif
+    if find_substr($DataAttributes["User Account Control"],"%%2098") != null then
+        #Means that Protocol Transition delegation was enabled for the user account. We recommend monitoring this to discover whether it is an approved action (done by an administrator), a mistake, or a malicious action
+        $decoded_uac = append($decoded_uac, "Trusted to authenticate for delegation: enabled")
+    endif   
+    
+    if find_substr($DataAttributes["User Account Control"],"%%2062") != null then
+        #Should be monitored for all accounts where the setting should be “Enabled.” Means that Account is sensitive and cannot be delegated was unchecked for the user account. We recommend monitoring this to discover whether it is an approved action (done by an administrator), a mistake, or a malicious action
+        $decoded_uac = append($decoded_uac, "Not delegated: disabled")
+    endif
+    if find_substr($DataAttributes["User Account Control"],"%%2094") != null then
+        #Means that Account is sensitive and cannot be delegated was checked for the user account. We recommend monitoring this to discover whether it is an approved action (done by an administrator), a mistake, or a malicious action
+        $decoded_uac = append($decoded_uac, "Not delegated: enabled")
+    endif
+            
+    if find_substr($DataAttributes["User Account Control"],"%%2063") != null then
+        #Should be monitored for all accounts where the setting should be "Enabled"
+        $decoded_uac = append($decoded_uac, "Use DES key only: disabled")
+    endif
+    if find_substr($DataAttributes["User Account Control"],"%%2095") != null then
+        #Should not typically be enabled for user accounts because it weakens security for the account’s Kerberos authentication
+        $decoded_uac = append($decoded_uac, "Use DES key only: enabled")
+    endif
+    
+    if find_substr($DataAttributes["User Account Control"],"%%2064") != null then
+        #Should be monitored for all accounts where the setting should be "Enabled"
+        $decoded_uac = append($decoded_uac, "Don't require preauth: disabled")
+    endif
+    if find_substr($DataAttributes["User Account Control"],"%%2096") != null then
+        #Should not be enabled for user accounts because it weakens security for the account’s Kerberos authentication
+        $decoded_uac = append($decoded_uac, "Don't require preauth: enabled")
+    endif
+    
+    ###остальные варианты###
+    
+    if find_substr($DataAttributes["User Account Control"],"%%2049") != null then
+        $decoded_uac = append($decoded_uac, "Home directory required: disabled")
+    endif
+    if find_substr($DataAttributes["User Account Control"],"%%2081") != null then
+        $decoded_uac = append($decoded_uac, "Home Directory Required: enabled")
+    endif
+    
+    if find_substr($DataAttributes["User Account Control"],"%%2051") != null then
+        $decoded_uac = append($decoded_uac, "Temp duplicate account: disabled")
+    endif
+    if find_substr($DataAttributes["User Account Control"],"%%2083") != null then
+        $decoded_uac = append($decoded_uac, "Temp Duplicate Account: enabled")
+    endif   
+
+    if find_substr($DataAttributes["User Account Control"],"%%2053") != null then
+        $decoded_uac = append($decoded_uac, "MNS logon account: disabled")
+    endif
+    if find_substr($DataAttributes["User Account Control"],"%%2085") != null then
+        $decoded_uac = append($decoded_uac, "MNS logon account: enabled")
+    endif   
+    
+    if find_substr($DataAttributes["User Account Control"],"%%2054") != null then
+        $decoded_uac = append($decoded_uac, "Interdomain trust account: disabled")
+    endif
+    if find_substr($DataAttributes["User Account Control"],"%%2086") != null then
+        $decoded_uac = append($decoded_uac, "Interdomain trust account: enabled")
+    endif
+    
+    if find_substr($DataAttributes["User Account Control"],"%%2055") != null then
+        $decoded_uac = append($decoded_uac, "Workstation trust account: disabled")
+    endif
+    if find_substr($DataAttributes["User Account Control"],"%%2087") != null then
+        $decoded_uac = append($decoded_uac, "Workstation trust account: enabled")
+    endif
+
+    if find_substr($DataAttributes["User Account Control"],"%%2058") != null then
+        $decoded_uac = append($decoded_uac, "Account unlocked")
+    endif
+    if find_substr($DataAttributes["User Account Control"],"%%2090") != null then
+        $decoded_uac = append($decoded_uac, "Account locked")
+    endif
+    
+    if find_substr($DataAttributes["User Account Control"],"%%2065") != null then
+        $decoded_uac = append($decoded_uac, "Password expired: disabled")
+    endif
+    if find_substr($DataAttributes["User Account Control"],"%%2097") != null then
+        $decoded_uac = append($decoded_uac, "Password expired: enabled")
+    endif
+    
+    if find_substr($DataAttributes["User Account Control"],"%%2067") != null then
+        $decoded_uac = append($decoded_uac, "Exclude authorization information: disabled")
+    endif
+    if find_substr($DataAttributes["User Account Control"],"%%2099") != null then
+        $decoded_uac = append($decoded_uac, "Exclude authorization information: enabled")
+    endif
+    
+    if find_substr($DataAttributes["User Account Control"],"%%2068") != null then
+        $decoded_uac = append($decoded_uac, "Undefined UserAccountControl bit 20: disabled")
+    endif
+    if find_substr($DataAttributes["User Account Control"],"%%2100") != null then
+        $decoded_uac = append($decoded_uac, "Undefined UserAccountControl bit 20: enabled")
+    endif
+    
+    if find_substr($DataAttributes["User Account Control"],"%%2069") != null then
+        $decoded_uac = append($decoded_uac, "Protect kerberos service tickets with AES keys: disabled")
+    endif
+    if find_substr($DataAttributes["User Account Control"],"%%2101") != null then
+        $decoded_uac = append($decoded_uac, "Protect kerberos service tickets with AES keys: enabled")
+    endif
+    
+    object.property = "user account control"
+    object.new_value = join($decoded_uac, "|")
+endif
+
+if $DataAttributes["Old UAC Value"] != null and $DataAttributes["Old UAC Value"] != "-" and $DataAttributes["Old UAC Value"] != "0x0" then
+    $uac_value = number16($DataAttributes["Old UAC Value"])
+    $decoded_flags = []
+    
+    if mod(div($uac_value, 1), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "SCRIPT")
+    endif
+    if mod(div($uac_value, 2), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "ACCOUNTDISABLE")
+    endif
+    if mod(div($uac_value, 8), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "HOMEDIR_REQUIRED")
+    endif
+    if mod(div($uac_value, 16), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "LOCKOUT")
+    endif
+    if mod(div($uac_value, 32), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "PASSWD_NOTREQD")
+    endif
+    if mod(div($uac_value, 64), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "PASSWD_CANT_CHANGE")
+    endif
+    if mod(div($uac_value, 128), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "ENCRYPTED_TEXT_PWD_ALLOWED")
+    endif
+    if mod(div($uac_value, 256), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "TEMP_DUPLICATE_ACCOUNT")
+    endif
+    if mod(div($uac_value, 512), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "NORMAL_ACCOUNT")
+    endif
+    if mod(div($uac_value, 2048), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "INTERDOMAIN_TRUST_ACCOUNT")
+    endif
+    if mod(div($uac_value, 4096), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "WORKSTATION_TRUST_ACCOUNT")
+    endif
+    if mod(div($uac_value, 8192), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "SERVER_TRUST_ACCOUNT")
+    endif
+    if mod(div($uac_value, 65536), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "DONT_EXPIRE_PASSWORD")
+    endif
+    if mod(div($uac_value, 131072), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "MNS_LOGON_ACCOUNT")
+    endif
+    if mod(div($uac_value, 262144), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "SMARTCARD_REQUIRED")
+    endif
+    if mod(div($uac_value, 524288), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "TRUSTED_FOR_DELEGATION")
+    endif
+    if mod(div($uac_value, 1048576), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "NOT_DELEGATED")
+    endif
+    if mod(div($uac_value, 2097152), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "USE_DES_KEY_ONLY")
+    endif
+    if mod(div($uac_value, 4194304), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "DONT_REQ_PREAUTH")
+    endif
+    if mod(div($uac_value, 8388608), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "PASSWORD_EXPIRED")
+    endif
+    if mod(div($uac_value, 16777216), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "TRUSTED_TO_AUTH_FOR_DELEGATION")
+    endif
+    if mod(div($uac_value, 67108864), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "PARTIAL_SECRETS_ACCOUNT")
+    endif
+
+    datafield10 = join($decoded_flags, "|")      #OldUacValue
+endif
+
+if $DataAttributes["New UAC Value"] != null and $DataAttributes["New UAC Value"] != "-" then
+    $uac_value = number16($DataAttributes["New UAC Value"])
+    $decoded_flags = []
+    
+    if mod(div($uac_value, 1), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "SCRIPT")
+    endif
+    if mod(div($uac_value, 2), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "ACCOUNTDISABLE")
+    endif
+    if mod(div($uac_value, 8), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "HOMEDIR_REQUIRED")
+    endif
+    if mod(div($uac_value, 16), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "LOCKOUT")
+    endif
+    if mod(div($uac_value, 32), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "PASSWD_NOTREQD")
+    endif
+    if mod(div($uac_value, 64), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "PASSWD_CANT_CHANGE")
+    endif
+    if mod(div($uac_value, 128), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "ENCRYPTED_TEXT_PWD_ALLOWED")
+    endif
+    if mod(div($uac_value, 256), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "TEMP_DUPLICATE_ACCOUNT")
+    endif
+    if mod(div($uac_value, 512), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "NORMAL_ACCOUNT")
+    endif
+    if mod(div($uac_value, 2048), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "INTERDOMAIN_TRUST_ACCOUNT")
+    endif
+    if mod(div($uac_value, 4096), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "WORKSTATION_TRUST_ACCOUNT")
+    endif
+    if mod(div($uac_value, 8192), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "SERVER_TRUST_ACCOUNT")
+    endif
+    if mod(div($uac_value, 65536), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "DONT_EXPIRE_PASSWORD")
+    endif
+    if mod(div($uac_value, 131072), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "MNS_LOGON_ACCOUNT")
+    endif
+    if mod(div($uac_value, 262144), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "SMARTCARD_REQUIRED")
+    endif
+    if mod(div($uac_value, 524288), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "TRUSTED_FOR_DELEGATION")
+    endif
+    if mod(div($uac_value, 1048576), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "NOT_DELEGATED")
+    endif
+    if mod(div($uac_value, 2097152), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "USE_DES_KEY_ONLY")
+    endif
+    if mod(div($uac_value, 4194304), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "DONT_REQ_PREAUTH")
+    endif
+    if mod(div($uac_value, 8388608), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "PASSWORD_EXPIRED")
+    endif
+    if mod(div($uac_value, 16777216), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "TRUSTED_TO_AUTH_FOR_DELEGATION")
+    endif
+    if mod(div($uac_value, 67108864), 2) == 1 then
+        $decoded_flags = append($decoded_flags, "PARTIAL_SECRETS_ACCOUNT")
+    endif
+
+    datafield11 = join($decoded_flags, "|")     #NewUacValue
+endif
+
+time = $TimeGenerated
+msgid = 4720
+importance = "medium"
+
+category.generic = "Account"
+category.high = "Users And Rights Management"
+category.low = "Manipulation"
+
+event_src.vendor = "microsoft"
+event_src.title = "windows"
+
+
+id = "SL_Logstash_syslog_4720_A_user_account_was_created"

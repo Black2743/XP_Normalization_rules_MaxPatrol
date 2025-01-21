@@ -1,0 +1,7 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_4740_A_user_account_was_locked_out"
+      LocalizationId: SL_Logstash_syslog_4740_A_user_account_was_locked_out_1
+ObjectId: SEC-NF-752778451
+ExpertContext:
+    Created: 02.12.2024
+    Updated: 02.12.2024

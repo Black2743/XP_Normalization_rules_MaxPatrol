@@ -1,0 +1,76 @@
+# <13>Nov 28 08:14:51 {"name":"msk-dc-05","hostname":"msk-dc-05","id":"fb7bc85d-52b7-4363-aa3c-48f61ed51e8d","os":{"name":"Windows Server 2019 Standard","family":"windows","version":"10.0","build":"17763.3469","kernel":"10.0.17763.3469 (WinBuild.160101.0800)","platform":"windows"},"architecture":"x86_64"} 
+# LOGSTASH[-]: 2024-11-28T08:14:51.592Z 
+# {name=msk-dc-05, hostname=msk-dc-05, id=fb7bc85d-52b7-4363-aa3c-48f61ed51e8d, os={name=Windows Server 2019 Standard, family=windows, version=10.0, build=17763.3469, kernel=10.0.17763.3469 (WinBuild.160101.0800), platform=windows}, architecture=x86_64} 
+
+# An attempt was made to reset an account's password.
+
+# \n\nSubject:\n	
+#     Security ID:		S-1-5-21-1876890826-2823397126-3190577417-45621\n	
+#     Account Name:		svc_telegram\n	
+#     Account Domain:		RENLIFE\n	
+#     Logon ID:		0xFA4C294E6\n\n
+# Target Account:\n	
+#     Security ID:		S-1-5-21-1876890826-2823397126-3190577417-67248\n	
+#     Account Name:		Alla.Tverdohlebova\n	
+#     Account Domain:		RENLIFE
+
+
+TEXT = '<{NUMBER}> {DATETIME} {$1=UNTIL("LOGSTASH[-]:")} {$TimeGenerated=DATETIME} {$2=STRING*} An attempt was made to reset an account\'s password.
+{$uncut_info=STRING*}'
+alert.context="An attempt was made to reset an account's password."
+
+
+
+submessage("JSON","Info", $1)
+subformula 'Info'
+    JSON=''
+    $Computer=$name
+    if find_substr($Computer, '.') != null then
+        event_src.fqdn = lower($Computer)
+        event_src.hostname = lower(substr($Computer, 0, find_substr($Computer, '.')))
+    else
+        event_src.hostname = lower($Computer)
+    endif
+    event_src.id=$id
+endsubformula
+
+$Data=keyvalue(strip(replace(replace($uncut_info,'&@',"\\\\",10000),'|',"&@n",10000),'||',''),'||',':','')
+
+$DataSubject= keyvalue(strip($Data["Subject"],'| ',''),'|',':','')
+$DataTargetAccount= keyvalue(strip($Data["Target Account"],'| ',''),'|',':','')
+
+
+
+subject = "account"
+action = "modify"
+object = "account"
+status = "failure"
+
+
+subject.account.id = $DataSubject["Security ID"]
+subject.account.name = lower($DataSubject["Account Name"])
+subject.account.domain = lower($DaDataSubjectta["Account Domain"])
+subject.account.session_id = maybe_number16($DataSubject["Logon ID"])
+
+object.account.name = lower($DataTargetAccount["Account Name"])
+object.account.domain = lower($DataTargetAccount["Account Domain"])
+object.account.id = $DataTargetAccount["Security ID"]
+
+object.property = "password"
+
+reason = "An attempt was made to reset an accounts password"
+
+time = $TimeGenerated
+msgid = 4724
+importance = "medium"
+
+category.generic = "Account"
+category.high = "Users And Rights Management"
+category.low = "Manipulation"
+
+event_src.vendor = "microsoft"
+event_src.title = "windows"
+
+event_src.category = "Operating system"
+
+id = "SL_Logstash_syslog_4724_An_attempt_was_made_to_reset_an_account_s_password"

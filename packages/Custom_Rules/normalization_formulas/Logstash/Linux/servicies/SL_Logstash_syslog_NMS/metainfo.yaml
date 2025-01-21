@@ -1,0 +1,7 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_NMS"
+      LocalizationId: SL_Logstash_syslog_NMS_1
+ObjectId: SEC-NF-209737395
+ExpertContext:
+    Created: 03.12.2024
+    Updated: 03.12.2024

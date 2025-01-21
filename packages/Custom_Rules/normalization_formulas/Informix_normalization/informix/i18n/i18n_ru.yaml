@@ -1,0 +1,4 @@
+Description: 'Замени эти слова на описание нормализации'
+EventDescriptions:
+    - LocalizationId: 'informix_1'
+      EventDescription: 'Сервис на машине {event_src.ip} выполнил метод {alert.key}'

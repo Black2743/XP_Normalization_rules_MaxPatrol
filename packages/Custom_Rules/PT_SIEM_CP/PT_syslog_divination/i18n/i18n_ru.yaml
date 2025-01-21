@@ -1,0 +1,4 @@
+Description: 'Замени эти слова на описание нормализации'
+EventDescriptions:
+    - LocalizationId: 'PT_syslog_divination_1'
+      EventDescription: 'Сервис forecastd: гадание способом "{datafield3}" над "{subject.name}"'

@@ -1,0 +1,4 @@
+Description: 'Замени эти слова на описание нормализации'
+EventDescriptions:
+    - LocalizationId: 'SL_Logstash_syslog_kerberos_pre_authentication_1'
+      EventDescription: 'Kerberos-аутентификация пользователя {subject.account.name}, запрошенная с узла {src.host}, завершилась ошибкой. Службе Kerberos на узле {src.host} не удалось выдать билет проверки подлинности Kerberos (TGT)'

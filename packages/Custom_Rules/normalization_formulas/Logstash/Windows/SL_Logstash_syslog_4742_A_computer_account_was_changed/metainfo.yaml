@@ -1,0 +1,7 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_4742_A_computer_account_was_changed"
+      LocalizationId: SL_Logstash_syslog_4742_A_computer_account_was_changed_1
+ObjectId: SEC-NF-639360476
+ExpertContext:
+    Created: 27.11.2024
+    Updated: 27.11.2024

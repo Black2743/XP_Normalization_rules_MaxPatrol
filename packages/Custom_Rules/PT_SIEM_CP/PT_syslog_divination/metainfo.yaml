@@ -1,0 +1,7 @@
+EventDescriptions:
+    - Criteria: id = "PT_syslog_divination"
+      LocalizationId: PT_syslog_divination_1
+ObjectId: SEC-NF-887630289
+ExpertContext:
+    Created: 09.12.2024
+    Updated: 09.12.2024

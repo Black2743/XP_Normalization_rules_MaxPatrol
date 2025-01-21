@@ -1,0 +1,19 @@
+TEXT = '<{NUMBER}> {DATETIME} {$1=UNTIL("LOGSTASH[-]:")} {$TimeCreated=DATETIME} {STRING*} Создание текста Scriptblock{STRING*}'
+
+submessage("JSON","Info", $1)
+subformula 'Info'
+    JSON=''
+    src.hostname=$name
+endsubformula
+
+subject = "service"
+action = "info"
+object = "policy"
+status = "ongoing"
+
+
+importance="low"
+
+time = $TimeCreated
+
+id = "SL_Logstash_syslog_email_message_alarm"

@@ -1,0 +1,4 @@
+Description: 'Replace these words with a description of normalization'
+EventDescriptions:
+    - LocalizationId: 'SL_Logstash_syslog_NPS_granted_access_to_a_user_1'
+      EventDescription: 'The NPS on host {event_src.host} granted access to a host to user {subject.account.name}'

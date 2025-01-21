@@ -1,0 +1,75 @@
+TEXT = '<{NUMBER}> {DATETIME} {$1=UNTIL("LOGSTASH[-]:")} {$TimeGenerated=DATETIME} {$2=STRING*} A member was added to a security-enabled global group.
+{$uncut_info=STRING*}'
+alert.context="A member was added to a security-enabled global group."
+
+submessage("JSON","Info", $1)
+subformula 'Info'
+    JSON=''
+    $Computer=$name
+    if find_substr($Computer, '.') != null then
+        event_src.fqdn = lower($Computer)
+        event_src.hostname = lower(substr($Computer, 0, find_substr($Computer, '.')))
+    else
+        event_src.hostname = lower($Computer)
+    endif
+    event_src.id=$id
+endsubformula
+
+$Data=keyvalue(strip(replace(replace($uncut_info,'&@',"\\\\",10000),'|',"&@n",10000),'||',''),'||',':','')
+
+$DataSubject= keyvalue(strip($Data["Subject"],'| ',''),'|',':','')
+$DataMember= keyvalue(strip($Data["Member"],'| ',''),'|',':','')
+$DataGroup= keyvalue(strip($Data["Group"],'| ',''),'|',':','')
+$DataAdditionalInformation= keyvalue(strip($Data["Additional Information"],'| ',''),'|',':','')
+
+
+
+subject = "account"
+action = "modify"
+object = "user_group"
+status = "success"
+
+subject.account.id = $DataSubject["Security ID"]
+subject.account.name = lower($DataSubject["Account Name"])
+subject.account.domain = lower($DataSubject["Account Domain"])
+subject.account.session_id = maybe_number16($DataSubject["Logon ID"])
+
+object.name = lower($DataGroup["Group Name"])
+object.type = "Security-enabled global"
+object.domain = lower($DataGroup["Group Domain"])
+object.id = $DataGroup["Security ID"]
+object.account.fullname = lower(substr($DataMember["Account Name"], 3, find_substr($DataMember["Account Name"], ',') - 3))
+object.account.id = $DataMember["Security ID"]
+object.account.dn = $DataMember["Account Name"]
+
+object.state = "A member was added"
+
+msgid = $EventID
+time = $TimeGenerated
+importance = "medium"
+
+category.generic = "Group"
+category.high = "Users And Rights Management"
+category.low = "Manipulation"
+
+event_src.vendor = "microsoft"
+event_src.title = "windows"
+
+event_src.category = "Operating system"
+
+
+id = "SL_Logstash_syslog_4728_A_member_was_added_to_a_security_enabled_global_group"
+
+# -- DEPRECATED --
+# lines from here will be deleted in future releases
+
+subject.id = subject.account.id
+subject.name = subject.account.name
+subject.domain = subject.account.domain
+
+object.property = "account"
+object.value = object.account.fullname
+
+datafield1 = subject.account.session_id    # ID сессии
+datafield2 = object.account.id
+datafield3 = object.account.dn

@@ -1,0 +1,4 @@
+Description: 'Замени эти слова на описание нормализации'
+EventDescriptions:
+    - LocalizationId: 'SL_Logstash_syslog_4719_System_audit_policy_changed_1'
+      EventDescription: 'На узле {event_src.hostname} изменена политика аудита системы. Подкатегория: {object.name}. Изменения: {object.state}'

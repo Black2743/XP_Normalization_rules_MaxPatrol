@@ -1,0 +1,1 @@
+<134>1 2024-12-05T19:59:00.000Z 192.0.2.157 forecastd 11734 - - CEF:0|Forecast Mechanics|forecast machine|0|Физиогномия|Гадание по лицу|1|act=forecast suser=howie cs1=северный олень

@@ -1,0 +1,26 @@
+TEXT = '<{NUMBER}> {DATETIME} {$1=UNTIL("LOGSTASH[-]:")} {$TimeGenerated=DATETIME} {$2=STRING*} 
+Cryptographic Services failed while processing the OnIdentity() call in the System Writer Object.
+{$uncut_info=STRING*}'
+
+submessage("JSON","Info", $1)
+subformula 'Info'
+    JSON=''
+    subject.account.id=$id
+    src.hostname=$hostname
+    event_src.ip=$ip[0]
+    event_src.category = "Operating system"
+    event_src.title = $os["name"]
+    event_src.vendor = $os["type"]
+
+    importance="low"
+endsubformula
+
+subject = "service"
+subject.name="Cryptographic Services"
+action = "info"
+object = "host"
+status = "ongoing"
+
+time = $TimeGenerated
+
+id = "SL_Logstash_syslog_Cryptographic_Services_failed"

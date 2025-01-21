@@ -1,0 +1,10 @@
+Description: 'Данное правило используется для нормализации логов аутентификации, где фиксируется факт проверки учетных данных пользователя с указанием исходной рабочей станции и метода аутентификации.'
+EventDescriptions:
+    - LocalizationId: 'normalization_SL_Logstash_syslog_account_logon'
+      EventDescription: 'NTLM-аутентификация пользователя {subject.account.name}, запрошенная на узле {src.host}, завершилась с ошибкой на узле {event_src.host}'
+    - LocalizationId: 'normalization_SL_Logstash_syslog_account_logon_2'
+      EventDescription: 'NTLM-аутентификация пользователя {subject.account.name} завершилась с ошибкой на узле {event_src.host}'
+    - LocalizationId: 'normalization_SL_Logstash_syslog_account_logon_3'
+      EventDescription: 'NTLM-аутентификация пользователя {subject.account.name}, запрошенная на узле {src.host}, прошла успешно на узле {event_src.host}'
+    - LocalizationId: 'normalization_SL_Logstash_syslog_account_logon_4'
+      EventDescription: 'NTLM-аутентификация пользователя {subject.account.name} прошла успешно на узле {event_src.host}'

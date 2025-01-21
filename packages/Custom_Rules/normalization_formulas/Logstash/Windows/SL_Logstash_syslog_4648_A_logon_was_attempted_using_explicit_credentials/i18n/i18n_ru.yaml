@@ -1,0 +1,4 @@
+Description: 'Замени эти слова на описание нормализации'
+EventDescriptions:
+    - LocalizationId: 'SL_Logstash_syslog_4648_A_logon_was_attempted_using_explicit_credentials_1'
+      EventDescription: 'Пользователь {subject.account.name} не смог войти в систему на узле {event_src.hostname}, используя явно указанные учетные данные'

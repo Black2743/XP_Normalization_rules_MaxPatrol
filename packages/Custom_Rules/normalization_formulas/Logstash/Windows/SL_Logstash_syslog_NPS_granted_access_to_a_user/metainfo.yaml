@@ -1,0 +1,7 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_NPS_granted_access_to_a_user"
+      LocalizationId: SL_Logstash_syslog_NPS_granted_access_to_a_user_1
+ObjectId: SEC-NF-146253312
+ExpertContext:
+    Created: 04.11.2024
+    Updated: 05.11.2024

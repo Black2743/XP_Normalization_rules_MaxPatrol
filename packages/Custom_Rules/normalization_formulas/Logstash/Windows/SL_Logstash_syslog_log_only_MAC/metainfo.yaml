@@ -1,0 +1,7 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_log_only_MAC"
+      LocalizationId: SL_Logstash_syslog_log_only_MAC_1
+ObjectId: SEC-NF-112275644
+ExpertContext:
+    Created: 03.12.2024
+    Updated: 03.12.2024

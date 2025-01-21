@@ -1,0 +1,9 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_an_account_was_successfully_logged_on" and action = "elevate"
+      LocalizationId: SL_Logstash_syslog_an_account_was_successfully_logged_on_1
+    - Criteria: id = "SL_Logstash_syslog_an_account_was_successfully_logged_on" and action = "login"
+      LocalizationId: normalization_SL_Logstash_syslog_an_account_was_successfully_logged_on_2
+ObjectId: SEC-NF-186878762
+ExpertContext:
+    Created: 04.11.2024
+    Updated: 05.11.2024

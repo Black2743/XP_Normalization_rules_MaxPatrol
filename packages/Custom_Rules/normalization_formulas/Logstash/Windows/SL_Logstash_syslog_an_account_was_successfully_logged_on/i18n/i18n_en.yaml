@@ -1,0 +1,6 @@
+Description: 'Replace these words with a description of normalization'
+EventDescriptions:
+    - LocalizationId: 'SL_Logstash_syslog_an_account_was_successfully_logged_on_1'
+      EventDescription: 'The user {subject.account.name} escalated privileges to {object.account.name} on host {src.host}'
+    - LocalizationId: 'normalization_SL_Logstash_syslog_an_account_was_successfully_logged_on_2'
+      EventDescription: 'The user {subject.account.name} logged in to the system successfully on host {src.host}. Logon type: {datafield6}'

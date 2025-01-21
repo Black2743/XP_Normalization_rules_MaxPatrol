@@ -1,0 +1,4 @@
+Description: 'Replace these words with a description of normalization'
+EventDescriptions:
+    - LocalizationId: 'LOC_Vendor_Title_syslog_event_name_1'
+      EventDescription: 'Email processing on server {event_src.hostname} ({event_src.ip}), message identifier {dst.asset}'

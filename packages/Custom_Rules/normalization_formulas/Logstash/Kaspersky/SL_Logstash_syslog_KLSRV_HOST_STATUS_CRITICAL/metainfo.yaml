@@ -1,0 +1,7 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_KLSRV_HOST_STATUS_CRITICAL"
+      LocalizationId: SL_Logstash_syslog_KLSRV_HOST_STATUS_CRITICAL_1
+ObjectId: SEC-NF-585959187
+ExpertContext:
+    Created: 04.12.2024
+    Updated: 04.12.2024

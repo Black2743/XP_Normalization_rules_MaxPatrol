@@ -1,0 +1,7 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_4672_Special_privileges_assigned_to_new_logon"
+      LocalizationId: SL_Logstash_syslog_4672_Special_privileges_assigned_to_new_logon_1
+ObjectId: SEC-NF-178147938
+ExpertContext:
+    Created: 28.11.2024
+    Updated: 28.11.2024

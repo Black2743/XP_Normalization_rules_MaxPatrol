@@ -1,0 +1,82 @@
+# <13>Nov 28 09:24:10 {"hostname":"1c-da-test-p-01","os":{"build":"14393.4530","kernel":"10.0.14393.4530 (rs1_release.210705-0736)","name":"Windows Server 2016 Standard","type":"windows","family":"windows","version":"10.0","platform":"windows"},"ip":["10.10.19.20"],"name":"1c-da-test-p-01.mos.renlife.com","id":"26b63585-e8b5-461d-a7eb-594396d5830c","mac":["d8:d3:85:ab:8b:f0","00:00:00:00:00:00:00:e0"],"architecture":"x86_64"} 
+# LOGSTASH[-]: 2024-11-28T09:24:10.396Z {hostname=1c-da-test-p-01, os={build=14393.4530, kernel=10.0.14393.4530 (rs1_release.210705-0736), name=Windows Server 2016 Standard, type=windows, family=windows, version=10.0, platform=windows}, ip=[10.10.19.20], name=1c-da-test-p-01.mos.renlife.com, id=26b63585-e8b5-461d-a7eb-594396d5830c, mac=[d8:d3:85:ab:8b:f0, 00:00:00:00:00:00:00:e0], architecture=x86_64} 
+# Special privileges assigned to new logon.
+# \n\nSubject:\n	
+#     Security ID:		S-1-5-18\n	
+#     Account Name:		SYSTEM\n	
+#     Account Domain:		
+#     NT AUTHORITY\n	
+#     Logon ID:		0x3E7
+# \n\nPrivileges:		
+#     SeAssignPrimaryTokenPrivilege\n			
+#         SeTcbPrivilege\n			
+#         SeSecurityPrivilege\n			
+#         SeTakeOwnershipPrivilege\n			
+#         SeLoadDriverPrivilege\n			
+#         SeBackupPrivilege\n			
+#         SeRestorePrivilege\n			
+#         SeDebugPrivilege\n			
+#         SeAuditPrivilege\n			
+#         SeSystemEnvironmentPrivilege\n			
+#         SeImpersonatePrivilege\n			
+#         SeDelegateSessionUserImpersonatePrivilege
+
+TEXT = '<{NUMBER}> {DATETIME} {$1=UNTIL("LOGSTASH[-]:")} {$TimeGenerated=DATETIME} {$2=STRING*} Special privileges assigned to new logon.
+{$uncut_info=STRING*}'
+alert.context="Special privileges assigned to new logon."
+
+submessage("JSON","Info", $1)
+subformula 'Info'
+    JSON=''
+    $ComputerName=$name
+    if find_substr($ComputerName, '.') != null then
+        event_src.fqdn = lower($ComputerName)
+        event_src.hostname = lower(substr($ComputerName, 0, find_substr($ComputerName, '.')))
+    else
+        event_src.hostname = lower($ComputerName)
+    endif
+    event_src.id=$id
+endsubformula
+
+$Data=keyvalue(strip(replace(replace($uncut_info,'&@',"\\\\",10000),'|',"&@n",10000),'||',''),'||',':','')
+
+$DataSubject= keyvalue(strip($Data["Subject"],'| ',''),'|',':','')
+$DataPrivileges= keyvalue(strip($Data["Privileges"],'| ',''),'|',':','')
+
+
+subject = "account"
+action = "elevate"
+object = "account"
+status = "success"
+
+subject.account.id = $DataSubject["Security ID"]
+subject.account.name = lower($DataSubject["Account Name"])
+subject.account.domain = lower($DaDataSubjectta["Account Domain"])
+subject.account.session_id = maybe_number16($DataSubject["Logon ID"])
+
+object.account.id = subject.account.id
+object.account.name = subject.account.name
+object.account.domain = subject.account.domain
+object.account.session_id = subject.account.session_id
+object.account.privileges = replace($DataPrivileges["Privileges"], ", ", "\n\t\t\t")
+
+time = $TimeGenerated
+msgid = $EventID
+importance = "low"
+
+category.generic = "Account"
+category.high = "Users And Rights Management"
+category.low = "Manipulation"
+
+event_src.vendor = "microsoft"
+event_src.title = "windows"
+
+event_src.category = "AAA"
+
+
+dst.fqdn = event_src.fqdn
+dst.hostname = event_src.hostname
+src.fqdn = event_src.fqdn
+src.hostname = event_src.hostname
+
+id = "SL_Logstash_syslog_4672_Special_privileges_assigned_to_new_logon"

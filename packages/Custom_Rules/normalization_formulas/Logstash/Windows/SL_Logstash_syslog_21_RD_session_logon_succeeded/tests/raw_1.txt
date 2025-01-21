@@ -1,0 +1,1 @@
+<13>Dec 02 09:02:05 {"name":"tec-da-prod-vhq-01.mos.renlife.com"} LOGSTASH[-]: 2024-12-02T09:02:05.978Z {name=tec-da-prod-vhq-01.mos.renlife.com} Remote Desktop Services: Session logon succeeded:\n\nUser: RENLIFE\goryani_adm\nSession ID: 116\nSource Network Address: 172.17.251.29

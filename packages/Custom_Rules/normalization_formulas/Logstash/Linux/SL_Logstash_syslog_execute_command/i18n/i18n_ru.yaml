@@ -1,0 +1,4 @@
+Description: 'Замени эти слова на описание нормализации'
+EventDescriptions:
+    - LocalizationId: 'SL_Logstash_syslog_execute_command_1'
+      EventDescription: 'на хосту {dst.hostname} пользователь {subject.account.name} использовал команду "{reason}"'

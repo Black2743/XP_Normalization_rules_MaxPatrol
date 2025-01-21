@@ -1,0 +1,4 @@
+Description: 'Replace these words with a description of normalization'
+EventDescriptions:
+    - LocalizationId: 'SL_Logstash_syslog_4740_A_user_account_was_locked_out_1'
+      EventDescription: 'Replace these words with a description. Example: The user {subject.account.name} started the {object.process.name} process on host {event_src.host}'

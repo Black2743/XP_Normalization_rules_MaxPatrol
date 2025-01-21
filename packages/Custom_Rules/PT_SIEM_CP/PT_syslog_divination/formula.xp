@@ -1,0 +1,21 @@
+TEXT='<{NUMBER}>{NUMBER} {$timeField=DATETIME} {HOSTNAME} forecastd {NUMBER} - - CEF:{NUMBER}|{$dt1=UNTIL("|")} {$dt2=UNTIL("|")}{NUMBER}
+|{$dt3=UNTIL("|")}{$dt4=UNTIL("|")}
+{NUMBER}|act={$dt5=STRING} suser={$ob=STRING} cs1={$sj=STRING}
+'
+subject = "service" 
+action = "detect"
+object = "account"
+status = "success"
+
+datafield1=$dt1
+datafield2=$dt2
+datafield3=$dt3
+datafield4=$dt4
+datafield5=$dt5
+
+
+object.name=$ob
+subject.name=$sj
+
+time=$timeField
+id="PT_syslog_divination"

@@ -1,0 +1,1 @@
+<13>Dec 03 07:29:41 {"name":"E19-01"} LOGSTASH[-]: 2024-12-03T07:29:41.681Z {name=E19-01} Cmdlet failed. Cmdlet Get-Notification, parameters -Summary "True".

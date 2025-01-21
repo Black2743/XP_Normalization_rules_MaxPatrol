@@ -1,0 +1,7 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_4724_An_attempt_was_made_to_reset_an_account_s_password"
+      LocalizationId: SL_Logstash_syslog_4724_An_attempt_was_made_to_reset_an_account_s_password_1
+ObjectId: SEC-NF-100265997
+ExpertContext:
+    Created: 28.11.2024
+    Updated: 28.11.2024

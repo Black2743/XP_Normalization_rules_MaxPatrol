@@ -1,0 +1,1 @@
+<134>1 2024-10-25T11:22:31.000Z 192.0.2.176 forecastd 62275 - - <data description="Гадание по плавящемуся воску" method="Карромантия" client="informix" vendor="Tagil Instruments" object="банан"/>

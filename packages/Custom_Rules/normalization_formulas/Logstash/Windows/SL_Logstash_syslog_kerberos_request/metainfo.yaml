@@ -1,0 +1,13 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_kerberos_request" and status = "failure" and subject.name != null
+      LocalizationId: SL_Logstash_syslog_kerberos_request_1
+    - Criteria: id = "SL_Logstash_syslog_kerberos_request" and status = "failure" and subject.name = null
+      LocalizationId: normalization_SL_Logstash_syslog_kerberos_request_2
+    - Criteria: id = "SL_Logstash_syslog_kerberos_request" and status = "success" and subject.name != null
+      LocalizationId: normalization_SL_Logstash_syslog_kerberos_request_3
+    - Criteria: id = "SL_Logstash_syslog_kerberos_request" and status = "success" and subject.name = null
+      LocalizationId: normalization_SL_Logstash_syslog_kerberos_request_4
+ObjectId: SEC-NF-180980290
+ExpertContext:
+    Created: 31.10.2024
+    Updated: 05.11.2024

@@ -1,0 +1,1 @@
+<13>Dec 03 13:13:20 {"ip":"172.20.9.129"} LOGSTASH[-]: 2024-12-03T13:13:20.528386Z {ip=172.20.9.129} <180>3042964: 3042960: .Dec  3 16:13:19: %SEC_LOGIN-4-LOGIN_FAILED: Login failed [user: 5(1947), 1 pack] [Source: UNKNOWN] [localport: 0] [Reason: Login Authentication Failed] at 16:13:19 MSK Tue Dec 3 2024

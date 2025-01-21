@@ -1,0 +1,61 @@
+# <13>Dec 03 11:34:27 {"name":"msk-dc-04","hostname":"msk-dc-04","id":"cee82a30-ffd9-42cf-b616-50c2be4da5b0","os":{"name":"Windows Server 2016 Standard","family":"windows","version":"10.0","build":"14393.4350","kernel":"10.0.14393.4350 (rs1_release.210407-2154)","platform":"windows"},"architecture":"x86_64"} LOGSTASH[-]: 2024-12-03T11:34:27.431Z {name=msk-dc-04, hostname=msk-dc-04, id=cee82a30-ffd9-42cf-b616-50c2be4da5b0, os={name=Windows Server 2016 Standard, family=windows, version=10.0, build=14393.4350, kernel=10.0.14393.4350 (rs1_release.210407-2154), platform=windows}, architecture=x86_64} 
+# System audit policy was changed.
+# \n\nSubject:\n	
+#     Security ID:		S-1-5-18\n	
+#     Account Name:		MSK-DC-04$\n	
+#     Account Domain:		RENLIFE\n	
+#     Logon ID:		0x3E7
+# \n\nAudit Policy Change:\n	
+#     Category:		Policy Change\n	
+#     Subcategory:		Audit Policy Change\n	
+#     Subcategory GUID:	{0CCE922F-69AE-11D9-BED3-505054503030}\n	
+#     Changes:		Success removed, Failure removed
+
+
+TEXT = '<{NUMBER}> {DATETIME} {$1=UNTIL("LOGSTASH[-]:")} {$TimeGenerated=DATETIME} {$2=STRING*} System audit policy was changed.
+{$uncut_info=STRING*}'
+alert.context="System audit policy was changed."
+
+submessage("JSON","Info", $1)
+subformula 'Info'
+    JSON=''
+    $ComputerName=$name
+    if find_substr($ComputerName, '.') != null then
+        event_src.fqdn = lower($ComputerName)
+        event_src.hostname = lower(substr($ComputerName, 0, find_substr($ComputerName, '.')))
+    else
+        event_src.hostname = lower($ComputerName)
+    endif
+    event_src.id=$id
+endsubformula
+
+$Data=keyvalue(strip(replace(replace($uncut_info,'&@',"\\\\",10000),'|',"&@n",10000),'||',''),'||',':','')
+
+$DataSubject= keyvalue(strip($Data["Subject"],'| ',''),'|',':','')
+$DataAuditPolicyChange= keyvalue(strip($Data["Audit Policy Change"],'| ',''),'|',':','')
+
+subject = "account"
+action = "modify"
+object = "policy"
+status = "success"
+
+datafield1 = maybe_number16($DataSubject["Logon ID"])    # ID сессии
+
+msgid = 4719
+time = $TimeGenerated
+
+subject.name = lower($DataSubject["Account Name"])
+subject.domain = lower($DataSubject["Account Domain"])
+subject.id = $DataSubject["Security ID"]
+
+object.type = $DataAuditPolicyChange["Category"]
+object.name = $DataAuditPolicyChange["Subcategory"]
+object.state = $DataAuditPolicyChange["Changes"]
+
+
+event_src.vendor = "microsoft"
+event_src.title = "windows"
+event_src.category = "Operating system"
+
+id = "SL_Logstash_syslog_4719_System_audit_policy_changed"
+importance = "info"

@@ -1,0 +1,7 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_email_message_alarm"
+      LocalizationId: SL_Logstash_syslog_email_message_alarm_1
+ObjectId: SEC-NF-182491718
+ExpertContext:
+    Created: 28.11.2024
+    Updated: 28.11.2024

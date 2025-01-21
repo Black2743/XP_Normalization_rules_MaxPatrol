@@ -1,0 +1,169 @@
+TEXT = '<{NUMBER}> {DATETIME} {$1=UNTIL("LOGSTASH[-]:")} {time=DATETIME} {$2=STRING*} An account was successfully logged on.
+{$uncut_info=STRING*}'
+alert.context="An account was successfully logged on."
+submessage("JSON","Info", $1)
+subformula 'Info'
+    JSON=''
+    subject.account.id=$id
+    $Computer=$hostname
+endsubformula
+
+$Data=keyvalue(strip(replace(replace($uncut_info,'&@',"\\\\",10000),'|',"&@n",10000),'||',''),'||',':','')
+
+$DataSubject=           keyvalue(strip($Data["Subject"],            '| ',''),'|',':','')
+$DataLogonInformation=  keyvalue(strip($Data["Logon Information"],  '| ',''),'|',':','')
+$DataNewLogon=          keyvalue(strip($Data["New Logon"],          '| ',''),'|',':','')
+$DataProcessInformation=keyvalue(strip($Data["Process Information"],'| ',''),'|',':','')
+$DataNetworkInformation=keyvalue(strip($Data["Network Information"],'| ',''),'|',':','')
+$DataDetailedAuthenticationInformation=keyvalue(strip($Data["Detailed Authentication Information"],'| ',''),'|',':','')
+
+datafield15=$DataNewLogon
+if maybe_number16($DataSubject["Logon ID"]) <= 1000 then
+    subject = "account"
+    action = "login"
+    object = "system"
+
+    subject.account.id = $DataNewLogon["User ID"]
+    subject.account.name = lower($DataNewLogon["Account Name"])
+    subject.account.domain = lower($DataNewLogon["Account Domain"])
+    subject.account.session_id = maybe_number16($DataNewLogon["Logon ID"])
+
+    category.generic = "Operating System"
+    category.high = "Access Management"
+    category.low = "Communication"
+else
+    subject = "account"
+    action = "elevate"
+    object = "account"
+
+    subject.account.id = $DataSubject["Security ID"]
+    subject.account.name = lower($DataSubject["Account Name"])
+    subject.account.domain = lower($DataSubject["Account Domain"])
+    subject.account.session_id = maybe_number16($DataSubject["Logon ID"])
+
+    if $DataLogonInformation["Logon Type"] == "9" and $DataNewLogon["Account Name"] != "-" then
+        object.account.name = lower($DataNewLogon["Account Name"])
+        object.account.domain = lower($DataNewLogon["Account Domain"])
+    else
+        object.account.id = $DataNewLogon["Security ID"]
+        object.account.name = lower($DataNewLogon["Account Name"])
+        object.account.domain = lower($DataNewLogon["Account Domain"])
+    endif
+
+    object.account.session_id = maybe_number16($DataNewLogon["Logon ID"])
+
+    category.generic = "Account"
+    category.high = "Users And Rights Management"
+    category.low = "Manipulation"
+endif
+status = "success"
+
+
+if maybe_number16($DataNewLogon["Target Linked Logon ID"]) != null then
+    object.property = "session ID with ElevatedToken"
+    object.value = maybe_number16($DataNewLogon["Target Linked Logon ID"])
+endif
+
+if $DataLogonInformation["Elevated Token"] != null then
+    if $DataLogonInformation["Elevated Token"] == "%%1842" then
+        subject.account.privileges = "local administrator rights"
+    else
+        subject.account.privileges = "local user rights"
+    endif
+endif
+
+#---- end local admin accounts
+
+if $DataProcessInformation["Process Name"] != '-' then
+    subject.process.fullpath = lower($DataProcessInformation["Process Name"])
+    $process_path = csv(subject.process.fullpath, "\\", "")
+    subject.process.name = $process_path[length($process_path) - 1]
+    subject.process.path = strip(subject.process.fullpath, "", subject.process.name)
+    subject.process.id = maybe_number16($DataProcessInformation["Process ID"])
+endif
+
+if $DataLogonInformation["Virtual Account"] == "%%1842" then  # Проверка является ли УЗ виртуальной
+    subject.type = "virtual"
+endif
+
+logon_type = $DataLogonInformation["Logon Type"]  # Должно быть выше назначения $hostname
+
+if (maybe_ipv4($DataNetworkInformation["Source Network Address"]) != null) || (maybe_ipv6($DataNetworkInformation["Source Network Address"]) != null) then
+    src.ip = $DataNetworkInformation["Source Network Address"]
+endif
+
+if (find_substr($DataDetailedAuthenticationInformation["Logon Process"], "User32") == null
+    and find_substr($DataDetailedAuthenticationInformation["Logon Process"], "Kerberos") == null
+    and find_substr($DataDetailedAuthenticationInformation["Logon Process"], "ADVAPI") == null
+    and find_substr($DataDetailedAuthenticationInformation["Logon Process"], "CHAP") == null
+    and in_list([3, 8, 10], logon_type))
+    or (in_list([2, 7, 11], logon_type)) then
+    $hostname = replace($DataNetworkInformation["Workstation Name"],'','\\\\')
+endif
+
+if (maybe_ipv4($hostname) == null) and (maybe_ipv6($hostname) == null) then
+    if (logon_type != 7 or in_list(["127.0.0.1", "::1"], src.ip)) then
+        if find_substr(lower($Computer), lower($hostname)) == null then
+            if find_substr($hostname, '.') != null then
+                src.fqdn = lower($hostname)
+                src.hostname = lower(substr($hostname, 0, find_substr($hostname, '.')))
+            elif $hostname != "-" then
+                src.hostname = lower($hostname)
+            endif
+        endif
+    endif
+endif
+
+if $DataNetworkInformation["Source Port"] != "-" then
+    src.port = $DataNetworkInformation["Source Port"]
+endif
+
+if find_substr($Computer, '.') != null then
+    dst.fqdn = lower($Computer)
+    dst.hostname = lower(substr($Computer, 0, find_substr($Computer, '.')))
+else
+    dst.hostname = lower($Computer)
+endif
+
+datafield6 = switch $DataLogonInformation["Logon Type"]                      # Тип входа
+    case "2" "Interactive"
+    case "3" "Network"
+    case "4" "Batch"
+    case "5" "Service"
+    case "7" "Unlock"
+    case "8" "NetworkCleartext"
+    case "9" "NewCredentials"
+    case "10" "RemoteInteractive"
+    case "11" "CachedInteractive"
+    case "12" "CachedRemoteInteractive"
+endswitch
+
+datafield9 = $DataDetailedAuthenticationInformation["Authentication Package"]             # Имя пакета аутентификации
+
+if in_list([2, 7, 11], logon_type) then
+    logon_auth_method = "local"
+endif
+if in_list([3, 8, 10, 12], logon_type) then
+    logon_auth_method = "remote"
+endif
+
+logon_service = $DataDetailedAuthenticationInformation["Logon Process"]
+chain_id = strip($Correlation["ActivityID"], "{", "}") 
+
+importance = "info"
+
+event_src.vendor = "microsoft"
+event_src.title = "windows"
+event_src.subsys = $Channel
+if find_substr($Computer, '.') != null then
+    event_src.fqdn = lower($Computer)
+    event_src.hostname = lower(substr($Computer, 0, find_substr($Computer, '.')))
+else
+    event_src.hostname = lower($Computer)
+endif
+
+event_src.category = "AAA"
+event_src.id = $Provider["Name"]
+
+id = "SL_Logstash_syslog_an_account_was_successfully_logged_on"
+

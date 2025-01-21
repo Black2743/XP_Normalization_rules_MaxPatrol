@@ -1,0 +1,40 @@
+# <13>Nov 27 13:05:10 {"hostname":"naumen-media-01","os":{"name":"Oracle Linux Server","type":"linux","family":"","version":"7.9","kernel":"5.4.17-2136.326.6.el7uek.x86_64","platform":"ol"},"ip":["10.10.2.56"],"containerized":false,"name":"naumen-media-01","id":"2707e67e0a234fa9b1d6100fa7e820e6","mac":["00:50:56:b8:ba:ea"],"architecture":"x86_64"} LOGSTASH[-]: 2024-11-27T13:05:10.736Z {hostname=naumen-media-01, os={name=Oracle Linux Server, type=linux, family=, version=7.9, kernel=5.4.17-2136.326.6.el7uek.x86_64, platform=ol}, ip=[10.10.2.56], containerized=false, name=naumen-media-01, id=2707e67e0a234fa9b1d6100fa7e820e6, mac=[00:50:56:b8:ba:ea], architecture=x86_64} 
+
+# Nov 27 16:05:09 naumen-media-01 sudo:  zabbix : TTY=unknown ; PWD=/ ; USER=root ; COMMAND=/opt/naumen/nauphone/bin/naucore show services
+
+
+TEXT = '<{NUMBER}> {DATETIME} {$1=UNTIL("LOGSTASH[-]:")} {$TimeCreated=DATETIME} {$2=STRING*}
+
+ TTY={$tty=STRING} {STRING*} PWD={$pwd=STRING} {STRING*} USER={$username=STRING} {STRING*} COMMAND={$execute_command=STRING*}'
+
+alert.context="execute command"
+submessage("JSON","Info", $1)
+subformula 'Info'
+    JSON=''
+    subject.account.id=$id
+    dst.hostname =$hostname
+    event_src.ip=$ip[0]
+    event_src.category = "Operating system"
+    event_src.title = $os["name"]
+    event_src.vendor = $os["type"]
+
+    importance="medium"
+endsubformula
+
+id="SL_Logstash_syslog_execute_command"
+
+subject = "account"
+action = "execute"
+object = "command"
+
+subject.account.name=$username
+
+time=$TimeCreated
+
+datafield1=$tty
+datafield2=$pwd
+datafield3=$execute_command
+
+reason=$execute_command
+
+

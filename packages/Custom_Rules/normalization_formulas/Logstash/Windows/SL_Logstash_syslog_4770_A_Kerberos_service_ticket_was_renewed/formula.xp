@@ -1,0 +1,98 @@
+# <13>Nov 27 09:58:16 {"name":"msk-dc-05","hostname":"msk-dc-05","id":"fb7bc85d-52b7-4363-aa3c-48f61ed51e8d","os":{"name":"Windows Server 2019 Standard","family":"windows","version":"10.0","build":"17763.3469","kernel":"10.0.17763.3469 (WinBuild.160101.0800)","platform":"windows"},"architecture":"x86_64"} 
+# LOGSTASH[-]: 2024-11-27T09:58:16.484Z {name=msk-dc-05, hostname=msk-dc-05, id=fb7bc85d-52b7-4363-aa3c-48f61ed51e8d, os={name=Windows Server 2019 Standard, family=windows, version=10.0, build=17763.3469, kernel=10.0.17763.3469 (WinBuild.160101.0800), platform=windows}, architecture=x86_64} 
+# A Kerberos service ticket was renewed.
+
+# \n\nAccount Information:\n Account Name:  ML-004777$@MOS.RENLIFE.COM\n Account Domain:  MOS.RENLIFE.COM
+
+# \n\nService Information:\n Service Name:  krbtgt\n Service ID:  S-1-5-21-1876890826-2823397126-3190577417-502
+
+# \n\nNetwork Information:\n Client Address:  ::ffff:172.18.0.217\n Client Port:  65220
+
+# \n\nAdditional Information:\n Ticket Options:  0x10002\n Ticket Encryption Type: 0x17
+
+# \n\nTicket options and encryption types are defined in RFC 4120.
+
+
+TEXT = '<{NUMBER}> {DATETIME} {$1=UNTIL("LOGSTASH[-]:")} {$TimeGenerated=DATETIME} {$2=STRING*} A Kerberos service ticket was renewed.
+{$uncut_info=STRING*}'
+alert.context="A Kerberos service ticket was renewed."
+
+action = "info"
+object = "service"
+status = "success"
+
+submessage("JSON","Info", $1)
+subformula 'Info'
+    JSON=''
+    $ComputerName=$name
+    if find_substr($ComputerName, '.') != null then
+        event_src.fqdn = lower($ComputerName)
+        event_src.hostname = lower(substr($ComputerName, 0, find_substr($ComputerName, '.')))
+    else
+        event_src.hostname = lower($ComputerName)
+    endif
+    event_src.id=$id
+endsubformula
+$Data=keyvalue(strip(replace(replace($uncut_info,'&@',"\\\\",10000),'|',"&@n",10000),'||',''),'||',':','')
+
+
+$DataAccountInformation= keyvalue(strip($Data["Account Information"],'| ',''),'|',':','')
+$DataServiceInformation= keyvalue(strip($Data["Service Information"],'| ',''),'|',':','')
+$DataNetworkInformation=keyvalue(strip($Data["Network Information"],'| ',''),'|',':','')
+$DataAdditionalInformation=keyvalue(strip($Data["Additional Information"],'| ',''),'|',':','')
+
+
+if find_substr($DataServiceInformation["Service Name"] , "/") != null then
+    $servicename = csv($DataServiceInformation["Service Name"] , "/", "")
+    object.name = $servicename[0]
+    object.domain = $servicename[1]
+else
+    object.name = $DataServiceInformation["Service Name"]
+endif
+
+$ip = strip($DataNetworkInformation["Client Address"], "::ffff:", "")
+if $ip == "::1" or $DataNetworkInformation["Client Port"] == 0 or in_subnet($ip, "127.0.0.0/8") then
+    src.hostname = "localhost"
+    src.ip = $ip
+else
+    src.ip = $ip
+endif
+
+src.port = $DataNetworkInformation["Client Port"]
+
+datafield1 = $DataServiceInformation["Service ID"]                # Идентификатор сервиса
+datafield2 = switch lower($DataAdditionalInformation["Ticket Encryption Type"])  # Тип шифрования билета
+    case "0x1" "DES-CBC-CRC"
+    case "0x3" "DES-CBC-MD5"
+    case "0x11" "AES128-CTS-HMAC-SHA1-96"
+    case "0x12" "AES256-CTS-HMAC-SHA1-96"
+    case "0x17" "RC4-HMAC"
+    case "0x18" "RC4-HMAC-EX"
+endswitch
+# datafield3 - Имя пользователя
+# datafield4 - Домен пользователя
+if find_substr($DataAccountInformation["Account Name"], "@") != null then
+    $TargetUserName = csv(lower($DataAccountInformation["Account Name"]), "@", "")
+    datafield3 = $TargetUserName[0]
+    datafield4 = $TargetUserName[1]
+else
+    datafield3 = lower($DataAccountInformation["Account Name"])
+    datafield4 = lower($DataAccountInformation["Account Domain"])
+endif
+
+datafield8 = $DataAdditionalInformation["Ticket Options"]                # Флаги-свойства билета в шестнадцатеричном формате
+
+msgid = 4770
+time = $TimeGenerated
+importance = "low"
+category.generic = "Service"
+category.high = "System Management"
+category.low = "Manipulation"
+
+event_src.vendor = "microsoft"
+event_src.title = "windows"
+event_src.subsys = $Logfile
+
+event_src.category = "AAA"
+
+id = "SL_Logstash_syslog_4770_A_Kerberos_service_ticket_was_renewed"

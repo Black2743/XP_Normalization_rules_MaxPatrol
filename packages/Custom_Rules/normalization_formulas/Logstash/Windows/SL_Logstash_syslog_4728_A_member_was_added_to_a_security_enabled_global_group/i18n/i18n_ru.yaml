@@ -1,0 +1,4 @@
+Description: 'Замени эти слова на описание нормализации'
+EventDescriptions:
+    - LocalizationId: 'SL_Logstash_syslog_4728_A_member_was_added_to_a_security_enabled_global_group_1'
+      EventDescription: 'Замени эти слова на описание с таксономическими полями. Пример: Пользователь {subject.account.name} запустил процесс {object.process.name} на узле {event_src.host}'

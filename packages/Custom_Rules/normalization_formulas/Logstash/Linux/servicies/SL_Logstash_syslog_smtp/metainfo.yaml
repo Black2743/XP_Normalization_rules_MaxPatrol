@@ -1,0 +1,7 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_smtp"
+      LocalizationId: LOC_Vendor_Title_syslog_event_name_1
+ExpertContext:
+    Created: 28.11.2024
+    Updated: 28.11.2024
+ObjectId: SEC-NF-193376050

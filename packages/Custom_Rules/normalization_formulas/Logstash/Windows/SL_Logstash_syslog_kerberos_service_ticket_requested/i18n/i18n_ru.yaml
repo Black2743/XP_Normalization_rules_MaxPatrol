@@ -1,0 +1,6 @@
+Description: 'Замени эти слова на описание нормализации'
+EventDescriptions:
+    - LocalizationId: 'SL_Logstash_syslog_kerberos_service_ticket_requested_1'
+      EventDescription: 'Службе Kerberos на узле {event_src.host} не удалось выдать сеансовый билет (TGS) для учетной записи {subject.account.name}, запрошенный с узла {src.host}, для получения доступа к сервису {logon_service}'
+    - LocalizationId: 'normalization_SL_Logstash_syslog_kerberos_service_ticket_requested_2'
+      EventDescription: 'На узле {event_src.host} службой Kerberos выдан сеансовый билет (TGS) для учетной записи {subject.account.name}, запрошенный с узла {src.host}, для получения доступа к сервису {logon_service}'

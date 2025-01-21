@@ -1,0 +1,7 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_4767_A_user_account_was_unlocked"
+      LocalizationId: SL_Logstash_syslog_4767_A_user_account_was_unlocked_1
+ObjectId: SEC-NF-103608013
+ExpertContext:
+    Created: 02.12.2024
+    Updated: 02.12.2024

@@ -1,0 +1,110 @@
+#<13>Nov 27 09:25:04 {"name":"msk-dc-04","hostname":"msk-dc-04","id":"cee82a30-ffd9-42cf-b616-50c2be4da5b0","os":{"name":"Windows Server 2016 Standard","family":"windows","version":"10.0","build":"14393.4350","kernel":"10.0.14393.4350 (rs1_release.210407-2154)","platform":"windows"},"architecture":"x86_64"} LOGSTASH[-]: 2024-11-27T09:25:04.001Z {name=msk-dc-04, hostname=msk-dc-04, id=cee82a30-ffd9-42cf-b616-50c2be4da5b0, os={name=Windows Server 2016 Standard, family=windows, version=10.0, build=14393.4350, kernel=10.0.14393.4350 (rs1_release.210407-2154), platform=windows}, architecture=x86_64} 
+# A user account was changed.
+# \n\nSubject:\n	Security ID:		S-1-5-7\n	Account Name:		ANONYMOUS LOGON\n	Account Domain:		NT AUTHORITY\n	Logon ID:		0x3E6
+# \n\nTarget Account:\n	Security ID:		S-1-5-21-"Account Expires"76890826-28"User Account Control"397126-3190577417-66720\n	Account Name:		Tatyana.Ilina3\n	Account Domain:		RENLIFE
+# \n\nChanged Attributes:\n	SAM Account Name:	-\n	Display Name:		-\n	User Principal Name:	-\n	Home Directory:		-\n	Home Drive:		-\n	Script Path:		-\n	Profile Path:		-\n	User Workstations:	-\n	Password Last Set:	27.11.2024 12:25:03\n	Account Expires:		-\n	Primary Group ID:	-\n	AllowedToDelegateTo:	-\n	Old UAC Value:		-\n	New UAC Value:		-\n	User Account Control:	-\n	User Parameters:	-\n	SID History:		-\n	Logon Hours:		-
+# \n\nAdditional Information:\n	Privileges:		-
+
+
+TEXT = '<{NUMBER}> {DATETIME} {$1=UNTIL("LOGSTASH[-]:")} {$TimeGenerated=DATETIME} {$2=STRING*} A user account was changed.
+{$uncut_info=STRING*}'
+alert.context="A user account was changed."
+
+subject = "account"
+action = "modify"
+object = "account"
+status = "success"
+
+submessage("JSON","Info", $1)
+subformula 'Info'
+    JSON=''
+    $ComputerName=$name
+    if find_substr($ComputerName, '.') != null then
+        event_src.fqdn = lower($ComputerName)
+        event_src.hostname = lower(substr($ComputerName, 0, find_substr($ComputerName, '.')))
+    else
+        event_src.hostname = lower($ComputerName)
+    endif
+    event_src.id=$id
+endsubformula
+$Data=keyvalue(strip(replace(replace($uncut_info,'&@',"\\\\",10000),'|',"&@n",10000),'||',''),'||',':','')
+
+    $DataSubject= keyvalue(strip($Data["Subject"],'| ',''),'|',':','')
+    $DataTargetAccount= keyvalue(strip($Data["Target Account"],'| ',''),'|',':','')
+    $DataChangedAttributes=keyvalue(strip($Data["Changed Attributes"],'| ',''),'|',':','')
+    $DataAdditionalInformation=keyvalue(strip($Data["Additional Information"],'| ',''),'|',':','')
+
+
+
+subject.account.id = $DataSubject["Security ID"]
+subject.account.name = lower($DataSubject["Account Name"])
+subject.account.domain = lower($DataSubject["Account Domain"])
+subject.account.session_id = maybe_number16($DataSubject["Logon ID"])
+
+object.account.name = lower($DataTargetAccount["Account Name"])
+object.account.domain = lower($DataTargetAccount["Account Domain"])
+object.account.id = $DataTargetAccount["Security ID"]
+
+object.account.group = if $DataChangedAttributes["Primary Group ID"] != "-" then $DataChangedAttributes["Primary Group ID"] else null endif
+
+if $DataChangedAttributes["User Account Control"] != null or $DataChangedAttributes["User Account Control"] != "-" then
+    $decoded_uac = []
+    if find_substr($DataChangedAttributes["User Account Control"], "%%2089") != null then
+        $decoded_uac = append($decoded_uac, "Don't expire password: enabled")
+    endif
+    if find_substr($DataChangedAttributes["User Account Control"], "%%2057") != null then
+        $decoded_uac = append($decoded_uac, "Don't expire password: disabled")
+    endif
+    if find_substr($DataChangedAttributes["User Account Control"], "%%2050") != null then
+        $decoded_uac = append($decoded_uac, "Password not required: disabled")
+    endif
+    if find_substr($DataChangedAttributes["User Account Control"], "%%2082") != null then
+        $decoded_uac = append($decoded_uac, "Password not required: enabled")
+    endif
+    if find_substr($DataChangedAttributes["User Account Control"], "%%2080") != null then
+        $decoded_uac = append($decoded_uac, "Account disable: enabled")
+    endif
+    if find_substr($DataChangedAttributes["User Account Control"], "%%2048") != null then
+        $decoded_uac = append($decoded_uac, "Account disable: disabled")
+    endif
+
+    object.property = "user account control"
+    object.new_value = join($decoded_uac, "|")
+endif
+
+if $DataChangedAttributes["Account Expires"] != "-" and $DataChangedAttributes["Account Expires"] != "%%1794" then
+    datafield3 = $DataChangedAttributes["Account Expires"]    # account expiration date
+elif $DataChangedAttributes["Account Expires"] == "%%1794" then
+    datafield3 = "account expires never"
+endif
+
+datafield4 = if $DataChangedAttributes["Password Last Set"] != "-" then $DataChangedAttributes["Password Last Set"] else null endif  # account password changed at (date and time)
+datafield5 = if $DataChangedAttributes["Logon Hours"] != "-" then $InsertioDataChangedAttributesnStrings["Logon Hours"] else null endif            # new logon hours
+datafield8 = if $DataChangedAttributes["User Principal Name"] != "-" then $InsertioDataChangedAttributesnStrings["User Principal Name"] else null endif  # logon name in RFC 822
+datafield9 = if $DataChangedAttributes["SID History"] != "-" then $DataChangedAttributes["SID History"] else null endif            # old SID of the user object
+
+msgid = $EventCode
+time = $TimeGenerated
+
+importance = "low"
+
+category.generic = "Account"
+category.high = "Users And Rights Management"
+category.low = "Manipulation"
+
+
+event_src.category = "Operating system"
+event_src.title = "windows"
+event_src.vendor = "microsoft"
+
+id = "SL_Logstash_4738_A_user_account_was_changed"
+
+# -- DEPRECATED --
+# lines from here will be deleted in future releases
+
+subject.id = subject.account.id
+subject.name = subject.account.name
+subject.domain = subject.account.domain
+object.id = object.account.id
+object.name = object.account.name
+object.domain = object.account.domain

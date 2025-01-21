@@ -1,0 +1,9 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_4738_A_user_account_was_changed" and subject.id != "S-1-5-7"
+      LocalizationId: SL_Logstash_syslog_4738_A_user_account_was_changed_1
+    - Criteria: id = "SL_Logstash_syslog_4738_A_user_account_was_changed" and subject.id = "S-1-5-7"
+      LocalizationId: normalization_SL_Logstash_syslog_4738_A_user_account_was_changed_2
+ObjectId: SEC-NF-119603759
+ExpertContext:
+    Created: 27.11.2024
+    Updated: 27.11.2024

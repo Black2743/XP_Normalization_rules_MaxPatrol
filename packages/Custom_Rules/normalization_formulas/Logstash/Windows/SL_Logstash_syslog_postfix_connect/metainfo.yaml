@@ -1,0 +1,7 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_postfix_connect"
+      LocalizationId: SL_Logstash_syslog_postfix_connect_1
+ObjectId: SEC-NF-176776220
+ExpertContext:
+    Created: 30.10.2024
+    Updated: 04.11.2024

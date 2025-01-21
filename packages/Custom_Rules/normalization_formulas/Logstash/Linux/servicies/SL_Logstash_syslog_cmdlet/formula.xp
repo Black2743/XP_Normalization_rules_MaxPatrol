@@ -1,0 +1,25 @@
+#<13>Dec 03 07:29:41 {"name":"E19-01"} LOGSTASH[-]: 2024-12-03T07:29:41.681Z {name=E19-01} Cmdlet failed. Cmdlet Get-Notification, parameters -Summary "True".
+
+
+TEXT = '<{NUMBER}> {DATETIME} {$1=UNTIL("LOGSTASH[-]:")} {$TimeCreated=DATETIME} {$2=STRING*}
+Cmdlet suceeded. Cmdlet {$alert_context=STRING*}'
+
+alert.context=$alert_context
+submessage("JSON","Info", $1)
+subformula 'Info'
+    JSON=''
+    src.hostname=$name
+    event_src.ip=$ip[0]
+    event_src.category = "Operating system"
+    importance="low"
+endsubformula
+
+subject = "service"
+subject.name="cmdlet"
+action = "info"
+object = "host"
+status = "ongoing"
+
+time = $TimeCreated
+
+id = "SL_Logstash_syslog_cmdlet"

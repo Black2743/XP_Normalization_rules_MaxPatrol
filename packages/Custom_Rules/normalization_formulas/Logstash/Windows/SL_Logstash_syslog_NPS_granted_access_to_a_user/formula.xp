@@ -1,0 +1,120 @@
+TEXT = '<{NUMBER}> {DATETIME} {$1=UNTIL("LOGSTASH[-]:")} {$TimeCreated=DATETIME} {$2=STRING*} Network Policy Server granted access to a user.
+{$uncut_info=STRING*}'
+alert.context="Network Policy Server granted access to a user."
+
+subject = "account"
+action = "login"
+object = "system"
+status = "success"
+
+time=$TimeCreated
+
+$cut_info=strip(replace(replace(replace($uncut_info,'&@',"\\\\",100),' ',"&@n",100),'|','  ',100),'|','')
+$Data=keyvalue($cut_info,'|',':','')
+datafield1=$cut_info
+
+submessage("JSON","Info", $1)
+subformula 'Info'
+    JSON=''
+    subject.account.id=$id
+    $Computer=$hostname
+endsubformula
+
+subject.account.domain = lower($Data["Account Domain"])
+
+if $Data["Account Name"] != "-" and $Data["Account Name"] != null then
+    $username = lower($Data["Account Name"])
+    if find_substr($username, '@') != null then
+        subject.account.name = csv($username, '@', '')[0]
+    elif find_substr($username, '\\') != null then
+        subject.account.name = csv($username, '\\', '')[1]
+    else 
+        subject.account.name = $username
+    endif
+endif
+
+if $Data['Account Session Identifier'] != '-' then
+    subject.account.session_id = $Data['Account Session Identifier']
+endif
+
+if $Data["Proxy Policy Name"] != "-" then
+    object.type = $Data["Proxy Policy Name"]
+endif
+
+if $Data["Network Policy Name"] != "-" then
+    object.name = $Data["Network Policy Name"]
+endif
+
+if $Data["NAS Identifier"] != "-" then
+    object.id = $Data["NAS Identifier"]
+endif
+
+if $Data["Authentication Server"] != "-" then
+    $hostname = lower($Data["Authentication Server"])
+endif
+if find_substr($hostname, '.') != null then
+    src.fqdn = $hostname
+    src.hostname = substr($hostname, 0, find_substr($hostname, '.'))
+else
+    src.hostname = $hostname
+endif
+
+if $Data["Calling Station Identifier"] != "-" then
+    if coalesce(maybe_ipv4($Data["Calling Station Identifier"]), maybe_ipv6($Data["Calling Station Identifier"])) != null then
+        src.ip = $Data["Calling Station Identifier"]
+    elif maybe_macaddr(substr($Data["Calling Station Identifier"], 0, 17)) != null then
+        src.mac = substr($Data["Calling Station Identifier"], 0, 17)
+    else 
+        datafield2 = $Data["Calling Station Identifier"]
+    endif
+endif
+
+if $Data["Called Station Identifier"] != "-" then
+    if coalesce(maybe_ipv4($Data["Called Station Identifier"]), maybe_ipv6($Data["Called Station Identifier"])) != null then
+        dst.ip = $Data["Called Station Identifier"]
+    elif maybe_macaddr(substr($Data["Called Station Identifier"], 0, 17)) != null then
+        dst.mac = substr($Data["Called Station Identifier"], 0, 17)
+    else 
+        datafield3 = $Data["Called Station Identifier"]  
+    endif
+endif
+
+nas_ip = coalesce(maybe_ipv4($Data["NAS IPv4 Address"]), maybe_ipv6($Data["NAS IPv6 Address"]))
+
+logon_auth_method = "remote"
+
+datafield1 = $Data["Authentication Type"]  
+
+if $Data["NAS Port"] != "-" then
+    datafield4 = $Data["NAS Port"]  
+endif
+
+datafield5 = coalesce(maybe_ipv4($Data["Client IP Address"]), maybe_ipv6($Data["Client IP Address"]))  
+
+msgid = "6272"
+importance = "info"
+
+category.generic = "Operating System"
+category.high = "Access Management"
+category.low = "Communication"
+
+event_src.vendor = "microsoft"
+event_src.title = "nps"
+
+if find_substr($Computer, '.') != null then
+    event_src.fqdn = lower($Computer)
+    event_src.hostname = lower(substr($Computer, 0, find_substr($Computer, '.')))
+else
+    event_src.hostname = lower($Computer)
+endif
+
+event_src.category = "AAA"
+
+id="SL_Logstash_syslog_NPS_granted_access_to_a_user"
+
+#########################################################
+subject.name = $username
+subject.domain = subject.account.domain
+subject.id = subject.account.id
+subject.type = object.type
+dst.port = datafield5

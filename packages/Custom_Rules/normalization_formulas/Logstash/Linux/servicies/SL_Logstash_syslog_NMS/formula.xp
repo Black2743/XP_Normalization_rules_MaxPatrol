@@ -1,0 +1,26 @@
+#<13>Dec 03 08:12:56 {"ip":"10.10.254.35"} LOGSTASH[-]: 2024-12-03T08:12:56.209200Z {ip=10.10.254.35} <180>%SNMP-W-SNMPAUTHFAIL: Access attempted by unauthorized NMS: 10.10.254.221
+
+TEXT = '<{NUMBER}> {DATETIME} {$1=UNTIL("LOGSTASH[-]:")} {$TimeCreated=DATETIME} {$2=STRING*}
+<{NUMBER}>%SNMP-W-SNMPAUTHFAIL:{$alert_context=STRING*} NMS: {$dstip=STRING*}'
+
+alert.context=$alert_context
+submessage("JSON","Info", $1)
+subformula 'Info'
+    JSON=''
+    src.hostname=$name
+    event_src.ip=$ip
+    event_src.category = "Operating system"
+    importance="low"
+endsubformula
+
+dst.ip=$dstip
+
+subject = "service"
+subject.name="SNMP-W-SNMPAUTHFAIL"
+action = "info"
+object = "host"
+status = "ongoing"
+
+time = $TimeCreated
+
+id = "SL_Logstash_syslog_NMS"

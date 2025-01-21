@@ -1,0 +1,1 @@
+<13>Dec 03 09:05:13 {"name":"1c-prod-02.mos.renlife.com"} LOGSTASH[-]: 2024-12-03T09:05:13.825Z {name=1c-prod-02.mos.renlife.com} Remote Desktop Services: User authentication succeeded:\n\nUser: kolomvl_adm\nDomain: renlife\nSource Network Address: 172.17.251.195

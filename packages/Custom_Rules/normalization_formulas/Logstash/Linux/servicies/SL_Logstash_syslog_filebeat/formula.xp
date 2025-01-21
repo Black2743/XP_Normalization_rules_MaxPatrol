@@ -1,0 +1,28 @@
+#<13>Nov 28 07:32:29 {"hostname":"ansible","os":{"kernel":"5.10.0-20-amd64","codename":"bullseye","name":"Debian GNU/Linux","type":"linux","family":"debian","version":"11 (bullseye)","platform":"debian"},"ip":["10.10.2.214"],"containerized":false,"name":"ansible","id":"07a497b7eb2846e386b15f10d32e3791","mac":["00:50:56:99:4d:6b"],"architecture":"x86_64"} LOGSTASH[-]: 2024-11-28T07:32:29.682Z {hostname=ansible, os={kernel=5.10.0-20-amd64, codename=bullseye, name=Debian GNU/Linux, type=linux, family=debian, version=11 (bullseye), platform=debian}, ip=[10.10.2.214], containerized=false, name=ansible, id=07a497b7eb2846e386b15f10d32e3791, mac=[00:50:56:99:4d:6b], architecture=x86_64} Nov 28 10:32:27 ansible filebeat[574]: {"log.level":"info","@timestamp":"2024-11-28T10:32:27.765+0300","log.logger":"file_watcher","log.origin":{"file.name":"filestream/fswatch.go","file.line":138},"message":"Start next scan","service.name":"filebeat","ecs.version":"1.6.0"}
+
+TEXT = '<{NUMBER}> {DATETIME} {$1=UNTIL("LOGSTASH[-]:")} {$TimeCreated=DATETIME} {$2=STRING*}
+{$hostname=STRING} filebeat{$alert_context=STRING*}'
+
+alert.context=$alert_context
+submessage("JSON","Info", $1)
+subformula 'Info'
+    JSON=''
+    subject.account.id=$id
+    src.hostname=$hostname
+    event_src.ip=$ip[0]
+    event_src.category = "Operating system"
+    event_src.title = $os["name"]
+    event_src.vendor = $os["type"]
+
+    importance="low"
+endsubformula
+
+subject = "service"
+subject.name="filebeat"
+action = "info"
+object = "host"
+status = "ongoing"
+
+time = $TimeCreated
+
+id = "SL_Logstash_syslog_filebeat"

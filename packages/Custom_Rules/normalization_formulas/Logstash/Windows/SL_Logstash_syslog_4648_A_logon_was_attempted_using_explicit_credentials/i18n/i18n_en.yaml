@@ -1,0 +1,4 @@
+Description: 'Replace these words with a description of normalization'
+EventDescriptions:
+    - LocalizationId: 'SL_Logstash_syslog_4648_A_logon_was_attempted_using_explicit_credentials_1'
+      EventDescription: 'The user {subject.account.name} failed to log in to host {event_src.hostname} with explicit credentials'

@@ -1,0 +1,9 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_session_status_for_user" and reason="opened"
+      LocalizationId: SL_Logstash_syslog_session_status_for_user_1
+    - Criteria: id = "SL_Logstash_syslog_session_status_for_user" and reason="closed"
+      LocalizationId: normalization_SL_Logstash_syslog_session_status_for_user_2
+ObjectId: SEC-NF-185941047
+ExpertContext:
+    Created: 27.11.2024
+    Updated: 27.11.2024

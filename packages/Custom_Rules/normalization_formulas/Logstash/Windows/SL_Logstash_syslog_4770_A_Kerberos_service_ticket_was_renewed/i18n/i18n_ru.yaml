@@ -1,0 +1,4 @@
+Description: 'Замени эти слова на описание нормализации'
+EventDescriptions:
+    - LocalizationId: 'SL_Logstash_syslog_4770_A_Kerberos_service_ticket_was_renewed_1'
+      EventDescription: 'Билет службы Kerberos обновлен успешно на {event_src.hostname}'

@@ -1,0 +1,83 @@
+# <13>Dec 02 10:43:01 {"hostname":"1c-da-test-p-01","os":{"build":"14393.4530","kernel":"10.0.14393.4530 (rs1_release.210705-0736)","name":"Windows Server 2016 Standard","type":"windows","family":"windows","version":"10.0","platform":"windows"},"ip":["10.10.19.20"],"name":"1c-da-test-p-01.mos.renlife.com","id":"26b63585-e8b5-461d-a7eb-594396d5830c","mac":["d8:d3:85:ab:8b:f0","00:00:00:00:00:00:00:e0"],"architecture":"x86_64"} LOGSTASH[-]: 2024-12-02T10:43:01.418Z {hostname=1c-da-test-p-01, os={build=14393.4530, kernel=10.0.14393.4530 (rs1_release.210705-0736), name=Windows Server 2016 Standard, type=windows, family=windows, version=10.0, platform=windows}, ip=[10.10.19.20], name=1c-da-test-p-01.mos.renlife.com, id=26b63585-e8b5-461d-a7eb-594396d5830c, mac=[d8:d3:85:ab:8b:f0, 00:00:00:00:00:00:00:e0], architecture=x86_64} 
+# An operation was performed on an object.
+# \n\nSubject :\n	
+#     Security ID:		S-1-5-19\n	
+#     Account Name:		LOCAL SERVICE\n	
+#     Account Domain:		NT AUTHORITY\n	
+#     Logon ID:		0x3E5
+# \n\nObject:\n	
+#     Object Server:		LSA\n	
+#     Object Type:		SecretObject\n	
+#     Object Name:		Policy\Secrets\$MACHINE.ACC\n	
+#     Handle ID:		0x2af01f40f40
+# \n\nOperation:\n	
+#     Operation Type:		Query\n	
+#     Accesses:	 Query secret value\n
+#			
+#     Access Mask:		0x2\n	
+#     Properties:		-
+# \n\nAdditional Information:\n	
+#     Parameter 1:		-\n	
+#     Parameter 2:		-
+
+TEXT = '<{NUMBER}> {DATETIME} {$1=UNTIL("LOGSTASH[-]:")} {$TimeGenerated=DATETIME} {$2=STRING*}An operation was performed on an object.
+{$uncut_info=STRING*}'
+alert.context="An operation was performed on an object."
+
+submessage("JSON","Info", $1)
+subformula 'Info'
+    JSON=''
+    $Computer=$name
+    if find_substr($Computer, '.') != null then
+        event_src.fqdn = lower($Computer)
+        event_src.hostname = lower(substr($Computer, 0, find_substr($Computer, '.')))
+    else
+        event_src.hostname = lower($Computer)
+    endif
+    event_src.id=$id
+endsubformula
+
+subject = "account"
+action = "access"
+object = "ds_object"
+status = "failure"
+
+$Data=keyvalue(strip(replace(replace($uncut_info,'&@',"\\\\"),'|',"&@n"),'||',''),'||',':','')
+    $DataSubject= keyvalue(strip($Data["Subject"],'| ',''),'|',':','')
+    $DataObject= keyvalue(strip($Data["Object"],  '| ',''),'|',':','')
+    $DataOperation= keyvalue(strip($Data["Operation"],'| ',''),'|',':','')
+    $DataAdditionalInformation=keyvalue(strip($Data["Additional Information"],'| ',''),'|',':','')
+
+
+subject.account.name = lower($DataSubject["Account Name"])
+subject.account.domain = lower($DataSubject["Account Domain"])
+subject.account.id = $DataSubject["Security ID"]
+subject.account.session_id = maybe_number16($DataSubject["Logon ID"])
+
+object.name = strip(replace($DataObject["Object Name"],"\\","&@"), "%{", "}")
+object.type = strip($DataObject["Operation Type"], "%{", "}")
+
+datafield2 = $DataOperation["Properties"]        # Подробности операции
+datafield5 = $DataOperation["Access Mask"]        # Маска доступа (содержит в себе весь AccessList)
+
+time = $TimeGenerated
+msgid = 4662
+importance = "medium"
+
+category.high = "System Management"
+category.generic = "Directory Service Object"
+category.low = "Manipulation"
+
+event_src.vendor = "microsoft"
+event_src.title = "windows"
+
+event_src.category = "Operating system"
+
+id = "SL_Logstash_syslog_4662_An_operation_was_performed_on_an_object"
+
+# -- DEPRECATED --
+# lines from here will be deleted in future releases
+subject.name = subject.account.name
+subject.domain = subject.account.domain
+subject.id = subject.account.id
+datafield1 = subject.account.session_id

@@ -1,0 +1,6 @@
+Description: 'Замени эти слова на описание нормализации'
+EventDescriptions:
+    - LocalizationId: 'SL_Logstash_syslog_an_account_was_successfully_logged_on_1'
+      EventDescription: 'Пользователь {subject.account.name} повысил свои привилегии до привилегий пользователя {object.account.name} на узле {src.host}'
+    - LocalizationId: 'normalization_SL_Logstash_syslog_an_account_was_successfully_logged_on_2'
+      EventDescription: 'Пользователь {subject.account.name} осуществил успешный вход в систему на узле {src.host}. Тип входа: {datafield6}'

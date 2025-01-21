@@ -1,0 +1,4 @@
+Description: 'Replace these words with a description of normalization'
+EventDescriptions:
+    - LocalizationId: 'SL_Logstash_syslog_4672_Special_privileges_assigned_to_new_logon_1'
+      EventDescription: 'Replace these words with a description. Example: The user {subject.account.name} started the {object.process.name} process on host {event_src.host}'

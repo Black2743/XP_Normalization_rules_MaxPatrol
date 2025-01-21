@@ -1,0 +1,71 @@
+TEXT = '<{NUMBER}> {DATETIME} {$1=UNTIL("LOGSTASH[-]:")} {$TimeGenerated=DATETIME} {$2=STRING*} An attempt was made to change an account\'s password.
+{$uncut_info=STRING*}'
+alert.context="An attempt was made to change an account's password."
+
+submessage("JSON","Info", $1)
+subformula 'Info'
+    JSON=''
+    $Computer=$name
+    if find_substr($Computer, '.') != null then
+        event_src.fqdn = lower($Computer)
+        event_src.hostname = lower(substr($Computer, 0, find_substr($Computer, '.')))
+    else
+        event_src.hostname = lower($Computer)
+    endif
+    event_src.id=$id
+endsubformula
+
+$Data=keyvalue(strip(replace(replace($uncut_info,'&@',"\\\\",10000),'|',"&@n",10000),'||',''),'||',':','')
+
+$DataSubject= keyvalue(strip($Data["Subject"],'| ',''),'|',':','')
+$DataTargetAccount= keyvalue(strip($Data["Target Account"],'| ',''),'|',':','')
+
+subject = "account"
+action = "modify"
+object = "account"
+
+status = "failure"
+
+
+subject.account.id = $DataSubject["Security ID"]
+subject.account.name = lower($DataSubject["Account Name"])
+subject.account.domain = lower($DaDataSubjectta["Account Domain"])
+subject.account.session_id = maybe_number16($DataSubject["Logon ID"])
+
+object.account.name = lower($DataTargetAccount["Account Name"])
+object.account.domain = lower($DataTargetAccount["Account Domain"])
+object.account.id = $DataTargetAccount["Security ID"]
+
+
+object.property = "password"
+
+reason = "An attempt was made to change an account's password"
+
+time = $TimeGenerated
+msgid = $EventID
+importance = "low"
+
+category.generic = "Account"
+category.high = "Users And Rights Management"
+category.low = "Manipulation"
+
+event_src.vendor = "microsoft"
+event_src.title = "windows"
+event_src.subsys = $Channel
+
+event_src.category = "Operating system"
+
+id = "SL_Logstash_syslog_4723_An_attempt_was_made_to_change_an_account_s_password"
+
+# -- DEPRECATED --
+# lines from here will be deleted in future releases
+
+subject.id = subject.account.id
+subject.name = subject.account.name
+subject.domain = subject.account.domain
+
+object.name = object.account.name
+object.domain = object.account.domain
+object.id = object.account.id
+
+datafield1 = subject.account.session_id    # ID сессии

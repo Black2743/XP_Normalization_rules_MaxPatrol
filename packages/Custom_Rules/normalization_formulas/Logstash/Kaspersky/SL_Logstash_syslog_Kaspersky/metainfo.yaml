@@ -1,0 +1,7 @@
+EventDescriptions:
+    - Criteria: id = "SL_Logstash_syslog_Kaspersky"
+      LocalizationId: SL_Logstash_syslog_Kaspersky_1
+ObjectId: SEC-NF-626418180
+ExpertContext:
+    Created: 29.11.2024
+    Updated: 29.11.2024

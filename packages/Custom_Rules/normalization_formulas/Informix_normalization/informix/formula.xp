@@ -1,0 +1,28 @@
+#<134>1 2024-10-25T11:22:31.000Z 192.0.2.176 forecastd 62275 - - 
+#<data description="Гадание по плавящемуся воску" method="Карромантия" client="informix" vendor="Tagil Instruments" object="банан"/>
+
+
+
+TEXT = '<{$id=NUMBER}>1 {$time=DATETIME} {$event_src.ip=STRING} {$event_src.title=STRING} {$msgid=NUMBER} - - <data 
+{$array_elements=KEYVALUE(" ","=","\\"")}'
+
+subject = "service"
+action = "execute"
+object = "process"
+status = "ongoing"
+importance = "info"
+
+time = $time
+
+
+event_src.vendor = $array_elements["vendor"]
+event_src.title = strip($event_src.title,"\"","\"")
+event_src.category = "Other"
+event_src.ip = $event_src.ip
+alert.context = $array_elements["description"]
+alert.key = $array_elements["method"]
+
+datafield1=$array_elements["object"]
+datafield2=$array_elements["client"]
+
+id = "SL_Informix_TagilInstruments_service_start"

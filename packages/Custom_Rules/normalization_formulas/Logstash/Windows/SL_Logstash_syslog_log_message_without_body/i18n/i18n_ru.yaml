@@ -1,0 +1,4 @@
+Description: 'Замени эти слова на описание нормализации'
+EventDescriptions:
+    - LocalizationId: 'SL_Logstash_syslog_log_message_without_body_1'
+      EventDescription: 'Пустой лог на узле {object.name}'
